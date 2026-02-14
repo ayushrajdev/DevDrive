@@ -1,0 +1,16 @@
+[
+  {
+    "id": "30f2fbfa-3d92-4ef2-ad5f-67448cd8c69b",
+    "name": "ayush",
+    "email": "ayush@gmail.com",
+    "password": "1234",
+    "rootDirID": "eeff57d0-f698-4879-9770-9d8508a35f2c"
+  },
+  {
+    "id": "a1255f10-b1a1-4c4b-986a-5e424d2a3a5f",
+    "name": "ayush",
+    "email": "ayushraj@gmail.com",
+    "password": "1234",
+    "rootDirID": "75fc50f6-a947-4cc2-9cfe-60f516a5de9a"
+  }
+]
