@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-// import fileRouter from "./routes/file.route.js";
+import fileRouter from "./routes/file.route.js";
 import directoryRouter from "./routes/directory.route.js";
 import userRouter from "./routes/user.route.js";
 import cookieParser from "cookie-parser";
@@ -34,7 +34,7 @@ try {
   );
 
   app.use("/directory", checkIsLoggedIn, directoryRouter);
-  // app.use("/file", checkIsLoggedIn, fileRouter);
+  app.use("/file", checkIsLoggedIn, fileRouter);
   app.use("/user", userRouter);
 
   app.use((err, req, res, next) => {

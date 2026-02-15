@@ -1,11 +1,4 @@
 import express from "express";
-import { createWriteStream, writeFileSync } from "fs";
-import path from "path";
-import { rm, writeFile } from "fs/promises";
-import filesData from "../fileDB.json" with { type: "json" };
-import directoriesData from "../directoriesDB.json" with { type: "json" };
-import { dirIdOfCurrentUser } from "../middlewares/auth.middleware.js";
-import { errorResponse } from "../Response.js";
 import fileController from "../controllers/file.controller.js";
 
 const router = express.Router();
@@ -20,7 +13,7 @@ const router = express.Router();
 // });
 
 //vfs done ✅
-router.post("/:filename", dirIdOfCurrentUser, fileController.createFile);
+router.post("/:filename", fileController.createFile);
 
 // vfs done ✅
 router.delete("/:id", fileController.deleteFile);

@@ -1,20 +1,23 @@
-import { createWriteStream, writeFileSync } from "fs";
+import { createWriteStream } from "fs";
 import path from "path";
-import { rm, writeFile } from "fs/promises";
-import filesData from "../fileDB.json" with { type: "json" };
-import directoriesData from "../directoriesDB.json" with { type: "json" };
+
+import { Collection, Db, ObjectId } from "mongodb";
+import { errorResponse } from "../Response.js";
 
 async function getFile(req, res) {
   try {
+    const db = req.db;
     const { id } = req.params;
-    const fileInfo = filesData.find((file) => file.id == id);
-    if (!fileInfo) {
-      return res.status(404).json({ message: "file not found" });
-    }
-    const filePath = `${process.cwd()}/storage/${id}${fileInfo.extension}`;
+    const filesCollection = db.collection("files");
+    const file = await filesCollection.findOne({
+      _id: new ObjectId(id),
+    });
+    console.log(file);
+    if (!file) return errorResponse(res);
+    const filePath = `${process.cwd()}/storage/${id}${file.extension}`;
     if (req.query.action === "download") {
       // res.set("Content-Disposition", `attachment; filename=${fileInfo.name}`);
-      return res.download(filePath, fileInfo.name);
+      return res.download(filePath, file.name);
     }
     return res.sendFile(filePath);
   } catch (error) {
@@ -24,30 +27,34 @@ async function getFile(req, res) {
 
 async function createFile(req, res) {
   try {
-    const { uid, user, DirectoryOfUser, parentDirId } = req;
-
-
+    const { uid, user, db } = req;
+    const parentDirId = req.body.parentDirId || user.rootDirId;
     const { filename } = req.params || "untitled";
-    const extensionName = path.extname(filename);
-    const randomId = crypto.randomUUID();
-    const fullFileName = randomId + extensionName;
-    const writeStream = createWriteStream(`./storage/${fullFileName}`);
+    const extension = path.extname(filename);
+
+    const filesCollection = db.collection("files");
+
+    const savedFileInDb = await filesCollection.insertOne({
+      name: filename,
+      extension,
+      parentDirId,
+      userId: user._id,
+    });
+    const fullFilePath = `./storage/${savedFileInDb.insertedId.toString() + extension}`;
+    console.log(fullFilePath);
+    const writeStream = createWriteStream(
+      `./storage/${savedFileInDb.insertedId.toString() + extension}`,
+    );
 
     req.pipe(writeStream);
     req.on("end", async () => {
-      filesData.push({
-        name: filename,
-        id: randomId,
-        extension: extensionName,
-        parentDirId,
-        userId: user.id,
-      });
-
-      DirectoryOfUser.files.push(randomId);
-
-      await writeFile("./fileDB.json", JSON.stringify(filesData));
-      writeFileSync("./directoriesDB.json", JSON.stringify(directoriesData));
       return res.json({ message: "File Uploaded" });
+    });
+    req.on("error", async () => {
+      await filesCollection.deleteOne({
+        _id: savedFileInDb.insertedId,
+      });
+      return res.json({ message: "failed" });
     });
   } catch (error) {
     console.log(error.message);
@@ -56,20 +63,14 @@ async function createFile(req, res) {
 }
 
 async function deleteFile(req, res) {
+  const db = req.db;
   const { id } = req.params;
-  const fileIndex = filesData.findIndex((file) => file.id == id);
-  const fileInfo = filesData[fileIndex];
-  const filePath = `./storage/${id}${fileInfo.extension}`;
+  const filesCollection = db.collection("files");
 
   try {
-    await rm(filePath, { recursive: true });
-    filesData.splice(fileIndex, 1);
-    const directoryInfo = directoriesData.find(
-      (directory) => directory.id === fileInfo.parentDirId,
-    );
-    directoryInfo.files = directoryInfo.files.filter((fileId) => fileId !== id);
-    await writeFile("./fileDB.json", JSON.stringify(filesData));
-    await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
+    await filesCollection.deleteOne({
+      _id: new ObjectId(id),
+    });
     res.json({ message: "File Deleted Successfully" });
   } catch (err) {
     res.status(404).json({ message: "File Not Found!" });
@@ -78,11 +79,20 @@ async function deleteFile(req, res) {
 
 async function renameFile(req, res, next) {
   try {
+    const newFileName = req.body.newFileName;
+    const db = req.db;
     const { id } = req.params;
-    const fileInfo = filesData.find((file) => file.id == id);
-    fileInfo.name = req.body.newFilename;
-    await writeFile("./fileDB.json", JSON.stringify(filesData));
-    res.json({ message: "Renamed" });
+    const filesCollection = db.collection("files");
+    const result = await filesCollection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          name: newFileName,
+        },
+      },
+    );
+
+    res.json({ message: "Renamed", result });
   } catch (error) {
     next(error);
   }

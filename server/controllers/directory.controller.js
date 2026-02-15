@@ -1,8 +1,5 @@
-import { writeFile } from "fs/promises";
-import directoriesData from "../directoriesDB.json" with { type: "json" };
-import filesData from "../fileDB.json" with { type: "json" };
-import { errorResponse } from "../Response.js";
-import { ObjectId } from "mongodb";
+import { errorResponse, successResponse } from "../Response.js";
+import { Db, ObjectId } from "mongodb";
 async function getDirDetails(req, res) {
   try {
     const { user, db } = req;
@@ -86,59 +83,24 @@ async function renameDir(req, res) {
 }
 
 async function deleteDir(req, res) {
-  const { id } = req.params;
-
   try {
-    const directoryIndex = directoriesData.findIndex((dir) => dir.id == id);
+    const db= req.db;
+    const { id } = req.params;
+    const filesCollection = db.collection("files")
+    const directoriesCollection = db.collection("directories")
 
-    if (directoryIndex === -1) {
-      return res.status(404).json({ message: "Folder not found" });
-    }
+    const filesDeleted = await filesCollection.deleteMany({
+      parentDirId: new ObjectId(id)
+    })
+    const directoriesDeleted = await directoriesCollection.deleteMany({
+      _id:new ObjectId(id)
+    })
 
-    const directoryInfo = directoriesData[directoryIndex];
+    return successResponse(res)
 
-    async function deleteFilesAndFolder(directory) {
-      // 1️⃣ Delete all files in this directory
-      for (const fileId of directory.files) {
-        const fileIndex = filesData.findIndex((file) => file.id == fileId);
-
-        if (fileIndex !== -1) {
-          filesData.splice(fileIndex, 1);
-        }
-      }
-
-      await writeFile("./fileDB.json", JSON.stringify(filesData));
-
-      // 2️⃣ Recursively delete subdirectories
-      for (const subDirId of directory.directories) {
-        const subDirIndex = directoriesData.findIndex(
-          (dir) => dir.id == subDirId,
-        );
-
-        if (subDirIndex !== -1) {
-          const subDirInfo = directoriesData[subDirIndex];
-
-          await deleteFilesAndFolder(subDirInfo);
-
-          directoriesData.splice(subDirIndex, 1);
-        }
-      }
-
-      await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
-    }
-
-    // delete inner content
-    await deleteFilesAndFolder(directoryInfo);
-
-    // delete root directory itself
-    directoriesData.splice(directoryIndex, 1);
-
-    await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
-
-    res.json({ message: "Folder deleted successfully" });
   } catch (error) {
-    console.log(error.message);
-    res.status(500).json({ error: "Something went wrong" });
+    console.log(error);
+    return errorResponse(res);
   }
 }
 
