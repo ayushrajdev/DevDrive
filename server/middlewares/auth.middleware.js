@@ -1,16 +1,22 @@
-import usersData from "../usersDB.json" with { type: "json" };
-import { errorResponse, successResponse } from "../Response.js";
-import filesData from "../fileDB.json" with { type: "json" };
+import { errorResponse } from "../Response.js";
 import directoriesData from "../directoriesDB.json" with { type: "json" };
+import { ObjectId } from "mongodb";
 
-export function checkIsLoggedIn(req, res, next) {
+export async function checkIsLoggedIn(req, res, next) {
+  const { db } = req;
   const { uid } = req.cookies;
-  console.log(req.cookies);
-  const user = usersData.find((user) => user.id == uid);
-  console.log(user);
-  if (!uid || !user) return errorResponse(res);
+  if (!uid) return errorResponse(res);
+  const usersCollection = db.collection("users");
+
+  const user = await usersCollection.findOne({
+    _id: new ObjectId(uid),
+  });
+  if (!user) return errorResponse(res);
   req.uid = uid;
   req.user = user;
+  console.log(uid);
+  console.log(user);
+
   next();
 }
 
@@ -23,13 +29,14 @@ export function dirIdOfCurrentUser(req, res, next) {
 
     const DirectoryOfUser = directoriesData.find(
       (dir) => dir.id == parentDirId && dir.userId == uid,
-    );
+    );  
 
     console.log(parentDirId);
     console.log(DirectoryOfUser);
     if (!DirectoryOfUser) {
       return errorResponse(res, "this directory is not of yours");
     }
+    
     req.parentDirId = parentDirId;
     req.DirectoryOfUser = DirectoryOfUser;
     next();

@@ -1,16 +1,1 @@
-[
-  {
-    "id": "30f2fbfa-3d92-4ef2-ad5f-67448cd8c69b",
-    "name": "ayush",
-    "email": "ayush@gmail.com",
-    "password": "1234",
-    "rootDirID": "eeff57d0-f698-4879-9770-9d8508a35f2c"
-  },
-  {
-    "id": "a1255f10-b1a1-4c4b-986a-5e424d2a3a5f",
-    "name": "ayush",
-    "email": "ayushraj@gmail.com",
-    "password": "1234",
-    "rootDirID": "75fc50f6-a947-4cc2-9cfe-60f516a5de9a"
-  }
-]
+[{"id":"30f2fbfa-3d92-4ef2-ad5f-67448cd8c69b","name":"ayush","email":"ayush@gmail.com","password":"1234","rootDirID":"eeff57d0-f698-4879-9770-9d8508a35f2c"},{"id":"a1255f10-b1a1-4c4b-986a-5e424d2a3a5f","name":"ayush","email":"ayushraj@gmail.com","password":"1234","rootDirID":"75fc50f6-a947-4cc2-9cfe-60f516a5de9a"},{"id":"b6801090-dc35-47a3-b87e-7a75cd3e2082","name":"ayush","email":"ayush@gmail.com","password":"1234","rootDirID":"0b7a4b8c-3936-439f-b019-fe4225ecb036"},{"id":"8f072973-f4a8-4aec-82d5-12778f22068c","name":"ayush","email":"ayush@gmail.com","password":"1234","rootDirID":"c4f150cf-a3da-4410-b503-f9c207560642"},{"id":"e8f6f3d8-0042-4c4d-bea7-0b9fc24dd9e6","name":"ayush","email":"ayush@gmail.com","password":"1234","rootDirID":"1e82b756-bae2-4ecc-8b42-e5913eee255d"}]
