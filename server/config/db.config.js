@@ -2,7 +2,7 @@ import { MongoClient } from "mongodb";
 
 const url = "mongodb://localhost:27017/DevDrive";
 // const url = "mongodb://localhost:27017/";
-const client = new MongoClient(url);
+export const client = new MongoClient(url);
 
 await client.connect();
 

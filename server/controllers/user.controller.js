@@ -1,9 +1,11 @@
-import { ObjectId } from "mongodb";
+import { Db, MongoClient, ObjectId } from "mongodb";
 import { successResponse } from "../Response.js";
+import { client } from "../config/db.config.js";
 
 async function registerUser(req, res, next) {
+  const { db} = req;
+  const session = client.startSession();
   try {
-    const { db } = req;
     const { email, password, name } = req.body;
     if (!email || !password) {
       res.status(409).json({ message: "invalid crediantials" });
@@ -11,28 +13,32 @@ async function registerUser(req, res, next) {
     const usersCollection = db.collection("users");
     const directoriesCollection = db.collection("directories");
 
-    const oidUser = new ObjectId()
-    const oidDirectory = new ObjectId()
+    const oidUser = new ObjectId();
+    const oidDirectory = new ObjectId();
+
+    session.startTransaction();
 
     const userCreated = await usersCollection.insertOne({
-      _id:oidUser,
+      _id: oidUser,
       name,
       email,
       password,
-      rootDirId:oidDirectory
+      rootDirId: oidDirectory,
     });
     const directoryCreated = await directoriesCollection.insertOne({
-      _id:oidDirectory,
+      _id: oidDirectory,
       name: `root-${email}`,
       parentDirId: null,
       userId: oidUser,
     });
 
+    await session.commitTransaction();
 
     res.cookie("uid", oidUser.toString());
     res.status(201).json({ userCreated });
   } catch (error) {
     next(error);
+    await session.abortTransaction();
   }
 }
 
