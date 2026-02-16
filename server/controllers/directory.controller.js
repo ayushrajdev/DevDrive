@@ -3,7 +3,7 @@ import { Db, ObjectId } from "mongodb";
 async function getDirDetails(req, res) {
   try {
     const { user, db } = req;
-    const id = req.params.id || user.rootDirId;
+    const id = req.params.id ? new ObjectId(req.params.id) : user.rootDirId;
     const filesCollection = db.collection("files");
     const directoriesCollection = db.collection("directories");
 
@@ -82,22 +82,55 @@ async function renameDir(req, res) {
   }
 }
 
+// under maintainance
 async function deleteDir(req, res) {
   try {
-    const db= req.db;
+    const db = req.db;
     const { id } = req.params;
-    const filesCollection = db.collection("files")
-    const directoriesCollection = db.collection("directories")
+    const filesCollection = db.collection("files");
+    const directoriesCollection = db.collection("directories");
 
-    const filesDeleted = await filesCollection.deleteMany({
-      parentDirId: new ObjectId(id)
-    })
-    const directoriesDeleted = await directoriesCollection.deleteMany({
-      _id:new ObjectId(id)
-    })
+    async function findRecurrssiveFileAndDir(id) {
+      let files = await filesCollection
+        .find({
+          parentDirId: new ObjectId(id),
+        })
+        .toArray();
+      let directories = await directoriesCollection
+        .find({
+          parentDirId: new ObjectId(id),
+        })
+        .toArray();
 
-    return successResponse(res)
+      for await (const { _id, name } of directories) {
+        const { files: childFiles, directories: childDirectories } =
+          await findRecurrssiveFileAndDir(_id);
 
+        files = [...files, childFiles];
+        directories = [...directories, childDirectories];
+      }
+
+      return { files, directories };
+    }
+    const { files, directories } = await findRecurrssiveFileAndDir();
+
+    for await (const { _id, extension } of files) {
+      await rm(`./storage/${_id.toString()}${extension}`);
+    }
+
+    filesCollection.deleteMany({
+      _id: {
+        $in: files.map(({ _id }) => _id),
+      },
+    });
+
+    directoriesCollection.deleteMany({
+      _id: {
+        $in: directories.map(({ _id }) => _id),
+      },
+    });
+
+    return successResponse(res);
   } catch (error) {
     console.log(error);
     return errorResponse(res);

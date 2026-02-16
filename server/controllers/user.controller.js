@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import { successResponse } from "../Response.js";
 
 async function registerUser(req, res, next) {
@@ -10,24 +11,25 @@ async function registerUser(req, res, next) {
     const usersCollection = db.collection("users");
     const directoriesCollection = db.collection("directories");
 
+    const oidUser = new ObjectId()
+    const oidDirectory = new ObjectId()
+
     const userCreated = await usersCollection.insertOne({
+      _id:oidUser,
       name,
       email,
       password,
+      rootDirId:oidDirectory
     });
     const directoryCreated = await directoriesCollection.insertOne({
+      _id:oidDirectory,
       name: `root-${email}`,
       parentDirId: null,
-      userId: userCreated.insertedId,
+      userId: oidUser,
     });
-    usersCollection.updateOne(
-      {
-        _id: userCreated.insertedId,
-      },
-      { $set: { rootDirId: directoryCreated.insertedId } },
-    );
 
-    res.cookie("uid", userCreated.insertedId.toString());
+
+    res.cookie("uid", oidUser.toString());
     res.status(201).json({ userCreated });
   } catch (error) {
     next(error);
