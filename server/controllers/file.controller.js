@@ -1,27 +1,22 @@
-import { createWriteStream } from "fs";
-import path from "path";
-
-import { Collection, Db, ObjectId } from "mongodb";
-import { errorResponse } from "../Response.js";
+import { createWriteStream } from 'fs';
+import path from 'path';
+import { Collection, Db, ObjectId } from 'mongodb';
+import { errorResponse } from '../Response.js';
+import File from '../models/file.model.js';
 
 async function getFile(req, res) {
   try {
-    const db = req.db;
     const { id } = req.params;
-    const filesCollection = db.collection("files");
-    const file = await filesCollection.findOne({
-      _id: new ObjectId(id),
-    });
-    console.log(file);
+    const file = await File.findById(id);
     if (!file) return errorResponse(res);
     const filePath = `${process.cwd()}/storage/${id}${file.extension}`;
-    if (req.query.action === "download") {
+    if (req.query.action === 'download') {
       // res.set("Content-Disposition", `attachment; filename=${fileInfo.name}`);
       return res.download(filePath, file.name);
     }
     return res.sendFile(filePath);
   } catch (error) {
-    res.json({ message: "file not found" });
+    res.json({ message: 'file not found' });
   }
 }
 
@@ -29,12 +24,12 @@ async function createFile(req, res) {
   try {
     const { uid, user, db } = req;
     const parentDirId = req.body.parentDirId || user.rootDirId;
-    const { filename } = req.params || "untitled";
+    const { filename } = req.params || 'untitled';
     const extension = path.extname(filename);
 
-    const filesCollection = db.collection("files");
+    const filesCollection = db.collection('files');
 
-    const savedFileInDb = await filesCollection.insertOne({
+    const savedFileInDb = await File.create({
       name: filename,
       extension,
       parentDirId,
@@ -47,33 +42,33 @@ async function createFile(req, res) {
     );
 
     req.pipe(writeStream);
-    req.on("end", async () => {
-      return res.json({ message: "File Uploaded" });
+    req.on('end', async () => {
+      return res.json({ message: 'File Uploaded' });
     });
-    req.on("error", async () => {
-      await filesCollection.deleteOne({
-        _id: savedFileInDb.insertedId,
-      });
-      return res.json({ message: "failed" });
+    req.on('error', async () => {
+      //   await filesCollection.deleteOne({
+      //     _id: savedFileInDb.insertedId,
+      //   });
+      return res.json({ message: 'failed' });
     });
   } catch (error) {
     console.log(error.message);
-    res.json({ message: "something went wrong" });
+    res.json({ message: 'something went wrong' });
   }
 }
 
 async function deleteFile(req, res) {
   const db = req.db;
   const { id } = req.params;
-  const filesCollection = db.collection("files");
+  const filesCollection = db.collection('files');
 
   try {
     await filesCollection.deleteOne({
       _id: new ObjectId(id),
     });
-    res.json({ message: "File Deleted Successfully" });
+    res.json({ message: 'File Deleted Successfully' });
   } catch (err) {
-    res.status(404).json({ message: "File Not Found!" });
+    res.status(404).json({ message: 'File Not Found!' });
   }
 }
 
@@ -82,7 +77,7 @@ async function renameFile(req, res, next) {
     const newFileName = req.body.newFileName;
     const db = req.db;
     const { id } = req.params;
-    const filesCollection = db.collection("files");
+    const filesCollection = db.collection('files');
     const result = await filesCollection.updateOne(
       { _id: new ObjectId(id) },
       {
@@ -92,7 +87,7 @@ async function renameFile(req, res, next) {
       },
     );
 
-    res.json({ message: "Renamed", result });
+    res.json({ message: 'Renamed', result });
   } catch (error) {
     next(error);
   }

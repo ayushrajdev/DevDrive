@@ -1,76 +1,68 @@
-import { Db, MongoClient, ObjectId } from "mongodb";
-import { successResponse } from "../Response.js";
-import { client } from "../config/db.config.js";
+import { Db, MongoClient, ObjectId } from 'mongodb';
+import { successResponse } from '../Response.js';
+// import { client } from "../config/db.config.js";
+import User from '../models/user.model.js';
+import Directory from '../models/directory.model.js';
 
 async function registerUser(req, res, next) {
-  const { db} = req;
-  const session = client.startSession();
+  const { db } = req;
   try {
     const { email, password, name } = req.body;
     if (!email || !password) {
-      res.status(409).json({ message: "invalid crediantials" });
+      res.status(409).json({ message: 'invalid crediantials' });
     }
-    const usersCollection = db.collection("users");
-    const directoriesCollection = db.collection("directories");
-
     const oidUser = new ObjectId();
     const oidDirectory = new ObjectId();
 
-    session.startTransaction();
-
-    const userCreated = await usersCollection.insertOne({
+    const user = new User({
       _id: oidUser,
       name,
       email,
       password,
       rootDirId: oidDirectory,
     });
-    const directoryCreated = await directoriesCollection.insertOne({
+    const directory = await Directory.create({
       _id: oidDirectory,
       name: `root-${email}`,
-      parentDirId: null,
       userId: oidUser,
     });
+    await user.save();
 
-    await session.commitTransaction();
-
-    res.cookie("uid", oidUser.toString());
-    res.status(201).json({ userCreated });
+    res.cookie('uid', oidUser.toString());
+    res.status(201).json({ user, directory });
   } catch (error) {
+    console.log(error);
     next(error);
-    await session.abortTransaction();
   }
 }
 
 async function loginUser(req, res) {
   try {
-    const { db } = req;
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "invalid crendiatels" });
+      return res.status(400).json({ message: 'invalid crendiatels' });
     }
-    const usersCollection = db.collection("users");
 
-    const user = await usersCollection.findOne({
+    const user = await User.findOne({
       email,
     });
 
     if (!user || user.password !== password) {
-      return res.status(400).json({ message: "invalid email" });
+      return res.status(400).json({ message: 'invalid email' });
     }
-
-    res.cookie("uid", user._id.toString(), {
+    console.log(user);
+    res.cookie('uid', user._id.toString(), {
       httpOnly: true,
     });
-    res.json({ message: "loggineed", user });
+    res.json({ message: 'loggineed', user });
   } catch (error) {}
 }
 
 async function logoutUser(req, res, next) {
   try {
-    res.clearCookie("uid");
-    return successResponse(res, "logged out successfull");
+    res.clearCookie('uid');
+    return successResponse(res, 'logged out successfull');
   } catch (error) {
     next(error);
   }

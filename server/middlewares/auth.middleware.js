@@ -1,15 +1,12 @@
-import { errorResponse } from "../Response.js";
-import { ObjectId } from "mongodb";
+import User from '../models/user.model.js';
+import { errorResponse } from '../Response.js';
+import { ObjectId } from 'mongodb';
 
 export async function checkIsLoggedIn(req, res, next) {
-  const { db } = req;
   const { uid } = req.cookies;
   if (!uid) return errorResponse(res);
-  const usersCollection = db.collection("users");
 
-  const user = await usersCollection.findOne({
-    _id: new ObjectId(uid),
-  });
+  const user = await User.findById(uid);
   if (!user) return errorResponse(res);
   req.uid = uid;
   req.user = user;
@@ -28,14 +25,14 @@ export function dirIdOfCurrentUser(req, res, next) {
 
     // const DirectoryOfUser = directoriesData.find(
     //   (dir) => dir.id == parentDirId && dir.userId == uid,
-    // );  
+    // );
 
     // console.log(parentDirId);
     // console.log(DirectoryOfUser);
     // if (!DirectoryOfUser) {
     //   return errorResponse(res, "this directory is not of yours");
     // }
-    
+
     // req.parentDirId = parentDirId;
     // req.DirectoryOfUser = DirectoryOfUser;
     next();

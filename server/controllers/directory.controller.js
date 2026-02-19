@@ -1,70 +1,63 @@
-import { errorResponse, successResponse } from "../Response.js";
-import { Db, ObjectId } from "mongodb";
+import Directory from '../models/directory.model.js';
+import File from '../models/file.model.js';
+import { errorResponse, successResponse } from '../Response.js';
+import {  ObjectId } from 'mongodb';
+
 async function getDirDetails(req, res) {
   try {
-    const { user, db } = req;
-    const id = req.params.id ? new ObjectId(req.params.id) : user.rootDirId;
-    const filesCollection = db.collection("files");
-    const directoriesCollection = db.collection("directories");
+    const id = req.params.id || user.rootDirId;
+    const directoryDetails = await Directory.findById(id).lean();
+    const directories = await Directory.find({
+      parentDirId: id,
+    }).lean();
+    const files = await File.find({
+      parentDirId: id,
+    })
+      .lean()
+      .populate('parentDirId', 'name -_id')
+      .populate('userId', 'email -_id')
+      .select('name userId -_id');
 
-    const directoryDetails = await directoriesCollection.findOne({
-      _id: new ObjectId(id),
-    });
+    console.log(directoryDetails);
 
-    const directories = await directoriesCollection
-      .find({
-        parentDirId: new ObjectId(directoryDetails._id),
-      })
-      .toArray();
-    const files = await filesCollection
-      .find({
-        parentDirId: new ObjectId(directoryDetails._id),
-      })
-      .toArray();
-
-    return res.json({ ...directoryDetails, files, directories });
+    return res.json({ files, directories, directoryDetails });
   } catch (error) {
+    res.json({ error: error.message });
     console.log(error.message);
   }
 }
 
 async function createNewDir(req, res) {
   try {
-    const { uid, user, db } = req;
+    const { uid, user } = req;
     const { dirname } = req.params;
     // id of in which the user is creating new directory
-    // ➕
     const parentDirId = req.body.parentDirId || user.rootDirId;
-    const directoriesCollection = db.collection("directories");
 
-    const parentDir = directoriesCollection.findOne({
-      _id: new ObjectId(parentDirId),
-    });
+    const parentDir = await Directory.findById(parentDirId).lean();
 
     if (!parentDir) {
       return errorResponse(res);
     }
 
-    const insertedDir = await directoriesCollection.insertOne({
+    const savedDir = await Directory.create({
       name: dirname,
-      parentDirId: parentDirId,
+      parentDirId,
       userId: user._id,
     });
 
-    res.json({ insertedDir });
+    res.json({ savedDir });
   } catch (error) {
     res.json({ m: error.message });
   }
 }
 
 async function renameDir(req, res) {
-  const { db } = req;
   const { id } = req.params;
   const newDirName = req.body.newDirName;
-  const directoriesCollection = db.collection("directories");
 
   try {
-    const result = await directoriesCollection.updateOne(
+    const result = await Directory.updateOne(
       { _id: new ObjectId(id) },
       {
         $set: {
@@ -75,7 +68,7 @@ async function renameDir(req, res) {
 
     console.log(result);
 
-    res.json({ m: "folder renamed" });
+    res.json({ m: 'folder renamed' });
   } catch (error) {
     console.log(error.message);
     res.json({ m: error.message });
@@ -87,8 +80,8 @@ async function deleteDir(req, res) {
   try {
     const db = req.db;
     const { id } = req.params;
-    const filesCollection = db.collection("files");
-    const directoriesCollection = db.collection("directories");
+    const filesCollection = db.collection('files');
+    const directoriesCollection = db.collection('directories');
 
     async function findRecurrssiveFileAndDir(id) {
       let files = await filesCollection

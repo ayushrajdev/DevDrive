@@ -15,6 +15,7 @@
     "cors": "^2.8.6",
     "express": "^4.21.2",
     "mime-types": "^2.1.35",
-    "mongodb": "^7.1.0"
+    "mongodb": "^7.1.0",
+    "mongoose": "^9.2.1"
   }
 }
