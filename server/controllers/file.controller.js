@@ -22,33 +22,27 @@ async function getFile(req, res) {
 
 async function createFile(req, res) {
   try {
-    const { uid, user, db } = req;
+    const { user } = req;
     const parentDirId = req.body.parentDirId || user.rootDirId;
     const { filename } = req.params || 'untitled';
     const extension = path.extname(filename);
 
-    const filesCollection = db.collection('files');
-
-    const savedFileInDb = await File.create({
+    const savedFile = await File.create({
       name: filename,
       extension,
       parentDirId,
       userId: user._id,
     });
-    const fullFilePath = `./storage/${savedFileInDb.insertedId.toString() + extension}`;
-    console.log(fullFilePath);
-    const writeStream = createWriteStream(
-      `./storage/${savedFileInDb.insertedId.toString() + extension}`,
-    );
+    const fullFilePath = `./storage/${savedFile._id.toString() + extension}`;
+
+    const writeStream = createWriteStream(fullFilePath);
 
     req.pipe(writeStream);
     req.on('end', async () => {
       return res.json({ message: 'File Uploaded' });
     });
+
     req.on('error', async () => {
-      //   await filesCollection.deleteOne({
-      //     _id: savedFileInDb.insertedId,
-      //   });
       return res.json({ message: 'failed' });
     });
   } catch (error) {
@@ -58,14 +52,9 @@ async function createFile(req, res) {
 }
 
 async function deleteFile(req, res) {
-  const db = req.db;
   const { id } = req.params;
-  const filesCollection = db.collection('files');
-
   try {
-    await filesCollection.deleteOne({
-      _id: new ObjectId(id),
-    });
+    await File.findByIdAndDelete(id);
     res.json({ message: 'File Deleted Successfully' });
   } catch (err) {
     res.status(404).json({ message: 'File Not Found!' });
@@ -74,18 +63,14 @@ async function deleteFile(req, res) {
 
 async function renameFile(req, res, next) {
   try {
-    const newFileName = req.body.newFileName;
-    const db = req.db;
     const { id } = req.params;
-    const filesCollection = db.collection('files');
-    const result = await filesCollection.updateOne(
-      { _id: new ObjectId(id) },
-      {
-        $set: {
-          name: newFileName,
-        },
+    const newFileName = req.body.newFileName;
+
+    const result = await File.findByIdAndUpdate(id, {
+      $set: {
+        name: newFileName,
       },
-    );
+    });
 
     res.json({ message: 'Renamed', result });
   } catch (error) {
