@@ -1,5 +1,5 @@
 import express from "express";
-import { checkIsLoggedIn } from "../middlewares/auth.middleware.js";
+import { checkUserAuth } from "../middlewares/auth.middleware.js";
 import userController from "../controllers/user.controller.js";
 const router = express.Router();
 
@@ -9,6 +9,6 @@ router.post("/login", userController.loginUser);
 
 router.post("/logout", userController.logoutUser);
 
-router.get("/profile", checkIsLoggedIn, userController.getUserInfo);
+router.get("/profile", checkUserAuth, userController.getUserInfo);
 
 export default router;

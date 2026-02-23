@@ -1,27 +1,19 @@
 import User from '../models/user.model.js';
 import { errorResponse } from '../Response.js';
+import crypto from 'crypto';
+import { checkAuthToken } from '../utils/helpers/auth.helper.js';
 
 export async function checkUserAuth(req, res, next) {
-    const { uid } = req.cookies;
-    if (!uid) return errorResponse(res);
-    console.log(Buffer.from(uid))
-    const { expiry, id } = JSON.parse(Buffer.from(
-        uid,
-        'base64url',
-    ).toString('utf8'));
-    const expiryTimeInSecond = parseInt(expiry, 16);
-    const currentTimeInSecond = Math.floor(Number(Date.now() / 1000));
-    console.log({ currentTimeInSecond, expiryTimeInSecond });
-    if (expiryTimeInSecond - currentTimeInSecond) {
-        res.clearCookie('uid');
-        return res.end();
-    }
+    const { token } = req.cookies;
+    if (!token) return errorResponse(res, 'token is not presentr');
+
+    const id = checkAuthToken(res, token);
     const user = await User.findById(id);
     if (!user) return errorResponse(res);
 
-    req.uid = uid;
+    req.token = token;
     req.user = user;
-    console.log(uid);
+    console.log(token);
     console.log(user);
 
     next();
@@ -29,13 +21,13 @@ export async function checkUserAuth(req, res, next) {
 
 export function dirIdOfCurrentUser(req, res, next) {
     try {
-        // const { user, uid } = req;
+        // const { user, token } = req;
         // const parentDirId = req.headers.parentdirid || user.rootDirID;
         // console.log("Header:", req.headers.parentdirid);
         // console.log("Type:", typeof req.headers.parentdirid);
 
         // const DirectoryOfUser = directoriesData.find(
-        //   (dir) => dir.id == parentDirId && dir.userId == uid,
+        //   (dir) => dir.id == parentDirId && dir.userId == token,
         // );
 
         // console.log(parentDirId);

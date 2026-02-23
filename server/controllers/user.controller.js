@@ -2,6 +2,7 @@ import { successResponse } from '../Response.js';
 import User from '../models/user.model.js';
 import Directory from '../models/directory.model.js';
 import mongoose, { Types } from 'mongoose';
+import { Generate_JWT_Token } from '../utils/helpers/auth.helper.js';
 
 async function registerUser(req, res, next) {
     const { db } = req;
@@ -42,7 +43,7 @@ async function registerUser(req, res, next) {
         //     oidUser.toString() +
         //     Math.round(new Date.now() / 1000 + 4000).toString('16');
 
-        // res.cookie('uid', token);
+        // res.cookie('token', token);
         res.status(201).json({ user, directory });
     } catch (error) {
         if (error.code == 11000) {
@@ -69,19 +70,10 @@ async function loginUser(req, res) {
         if (!user || user.password !== password) {
             return res.status(400).json({ message: 'invalid email' });
         }
-        console.log(user);
-        // const token =
-        //     user._id.toString() +
-        //     Math.round(Date.now() / 1000 + 4000).toString('16');
-        const customJWT = JSON.stringify({
-            expiry: Math.round(Date.now() / 1000 + 4000).toString('16'),
-            id: user._id.toString(),
-        });
+        const token =  Generate_JWT_Token(res, user);
 
-        res.cookie('uid', Buffer.from(customJWT).toString('base64url'), {
-            httpOnly: true,
-        });
-        res.json({ message: 'loggineed', user });
+
+        return res.json({ message: 'loggineed', user,token });
     } catch (error) {
         console.log(error.message);
     }
@@ -89,7 +81,7 @@ async function loginUser(req, res) {
 
 async function logoutUser(req, res, next) {
     try {
-        res.clearCookie('uid');
+        res.clearCookie('token');
         return successResponse(res, 'logged out successfull');
     } catch (error) {
         next(error);
