@@ -70,10 +70,17 @@ async function loginUser(req, res) {
         if (!user || user.password !== password) {
             return res.status(400).json({ message: 'invalid email' });
         }
-        const token =  Generate_JWT_Token(res, user);
+        const cookiePayload = JSON.stringify({
+            expiry: Math.round(Date.now() / 1000 + 4000).toString('16'),
+            id: user._id.toString(),
+        });
 
+        res.cookie('token', Buffer.from(cookiePayload).toString("hex"), {
+            httpOnly: true,
+            signed: true,
+        });
 
-        return res.json({ message: 'loggineed', user,token });
+        return res.json({ message: 'loggineed', user });
     } catch (error) {
         console.log(error.message);
     }

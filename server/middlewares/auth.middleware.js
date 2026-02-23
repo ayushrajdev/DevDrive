@@ -4,11 +4,28 @@ import crypto from 'crypto';
 import { checkAuthToken } from '../utils/helpers/auth.helper.js';
 
 export async function checkUserAuth(req, res, next) {
-    const { token } = req.cookies;
-    if (!token) return errorResponse(res, 'token is not presentr');
+    // const { token } = req.cookies;
+    const {token} = req.signedCookies;
+    console.log(token);
+    if (!token) return errorResponse(res, 'token is not present');
 
-    const id = checkAuthToken(res, token);
-    const user = await User.findById(id);
+    const { expiry, id } = JSON.parse(
+        Buffer.from(token, 'hex').toString('utf8'),
+    );
+
+    const expiryTimeInSecond = parseInt(expiry, 16);
+
+    const currentTimeInSecond = Math.floor(Number(Date.now() / 1000));
+
+    console.log({ currentTimeInSecond, expiryTimeInSecond });
+
+    if (!(expiryTimeInSecond - currentTimeInSecond >= 0)) {
+        res.clearCookie('token');
+        return res.end();
+    }
+
+    // const id = checkAuthToken(res, token);
+    const user = await User.findById(id).lean();
     if (!user) return errorResponse(res);
 
     req.token = token;

@@ -1,58 +1,35 @@
-import express from 'express';
+import './env.js';
 import cors from 'cors';
-import fileRouter from './routes/file.route.js';
-import directoryRouter from './routes/directory.route.js';
-import userRouter from './routes/user.route.js';
+import express from 'express';
+import { ENV } from './env.js';
 import cookieParser from 'cookie-parser';
-import { checkIsLoggedIn } from './middlewares/auth.middleware.js';
-import { connectDb, disConnectDb } from '../server/config/db.config.js';
+import fileRouter from './routes/file.route.js';
+import userRouter from './routes/user.route.js';
+import directoryRouter from './routes/directory.route.js';
+import { checkUserAuth } from './middlewares/auth.middleware.js';
 
-process.on('SIGINT', async () => {
-  await disConnectDb();
-  console.log('database disconnected');
-  process.exit(0);
+
+const app = express();
+app.use(express.json());
+app.use(cookieParser(ENV.SECRET_KEY));
+
+app.use(
+    cors({
+        origin: 'http://localhost:5173',
+        credentials: true,
+    }),
+);
+
+app.use('/user', userRouter);
+app.use('/file', checkUserAuth, fileRouter);
+app.use('/directory', checkUserAuth, directoryRouter);
+
+app.use((err, req, res, next) => {
+    res.status(500).json({ message: err.message });
 });
 
-try {
-  const app = express();
-  await connectDb();
-  console.log('db is connected ');
+export default app;
 
-  app.use(cookieParser());
-  app.use(express.json());
-
-  app.use(
-    cors({
-      origin: 'http://localhost:5173',
-      credentials: true,
-    }),
-  );
-
-  app.use('/directory', checkIsLoggedIn, directoryRouter);
-  app.use('/file', checkIsLoggedIn, fileRouter);
-  app.use('/user', userRouter);
-
-  app.use((err, req, res, next) => {
-    res.status(500).json({ message: err.message });
-  });
-
-  app.listen(4000, () => {
-    console.log(`Server Started`);
-  });
-} catch (error) {
-  console.log('could not connect to the database');
-  console.log(error.message);
-}
-
-// // Enabling CORS
-// app.use((req, res, next) => {
-//   res.set({
-//     "Access-Control-Allow-Origin": "*",
-//     "Access-Control-Allow-Methods": "*",
-//     "Access-Control-Allow-Headers": "*",
-//   });
-//   next();
-// });
 
 // //http redirection
 // app.all("/", async (req, res, next) => {
