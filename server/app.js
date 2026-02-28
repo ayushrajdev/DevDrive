@@ -1,35 +1,34 @@
-import './env.js';
-import cors from 'cors';
-import express from 'express';
-import { ENV } from './env.js';
-import cookieParser from 'cookie-parser';
-import fileRouter from './routes/file.route.js';
-import userRouter from './routes/user.route.js';
-import directoryRouter from './routes/directory.route.js';
-import { checkUserAuth } from './middlewares/auth.middleware.js';
-
+import "./env.js";
+import cors from "cors";
+import express from "express";
+import { ENV } from "./env.js";
+import cookieParser from "cookie-parser";
+import fileRouter from "./routes/file.route.js";
+import userRouter from "./routes/user.route.js";
+import directoryRouter from "./routes/directory.route.js";
+import { checkUserAuth } from "./middlewares/auth.middleware.js";
+import { checkSessionValid } from "./middlewares/session.middleware.js";
 
 const app = express();
 app.use(express.json());
 app.use(cookieParser(ENV.SECRET_KEY));
 
 app.use(
-    cors({
-        origin: 'http://localhost:5173',
-        credentials: true,
-    }),
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
 );
 
-app.use('/user', userRouter);
-app.use('/file', checkUserAuth, fileRouter);
-app.use('/directory', checkUserAuth, directoryRouter);
+app.use("/user", userRouter);
+app.use("/file", checkSessionValid, checkUserAuth, fileRouter);
+app.use("/directory", checkSessionValid, checkUserAuth, directoryRouter);
 
 app.use((err, req, res, next) => {
-    res.status(500).json({ message: err.message });
+  res.status(500).json({ message: err.message });
 });
 
 export default app;
-
 
 // //http redirection
 // app.all("/", async (req, res, next) => {

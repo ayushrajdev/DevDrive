@@ -1,32 +1,66 @@
 import { model, Schema } from 'mongoose';
 
 const userSchema = new Schema(
-    {
-        name: String,
-        email: {
-            type: String,
-            required: [true, 'name field is required'],
-            match: [
-                /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-                'email is invalid',
-            ],
+  {
+    name: String,
+    email: {
+      type: String,
+      required: [true, 'name field is required'],
+      match: [
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        'email is invalid',
+      ],
+      unique: true,
+    },
+    password: String,
+    rootDirId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Directory',
+      alias: 'rootDir',
+    },
+    age: {
+      type: Number,
+    },
+  },
+
+  {
+    timestamps: true,
+    strict: 'throw', //by default -> true
+    // versionKey: false, // now versioning of document is not defined,
+    // collection: 'users',
+    virtuals: {
+      isAdult: {
+        get() {
+          return this.age > 18;
         },
-        password:String,
-        rootDirId:{
-            type:Schema.Types.ObjectId,
-            ref:"Directory"
-        }
-
+      },
+      emailSplit: {
+        get() {
+          return this.email
+            .split('@')
+            .map((letter) => letter.split('.'))
+            .flat();
+        },
+        set(value) {
+          this.email = value;
+        },
+      },
     },
-
-    {
-        timestamps: true,
-        strict: 'throw', //by default -> true
-        // versionKey: false, // now versioning of document is not defined,
-        // collection: 'users',
-        
+    toJSON: {
+      virtuals: true,
     },
+    toObject: {
+      virtuals: true,
+    },
+    methods: {
+      getDomainOfEmail() {
+        return this.email.split('@')[1];
+      },
+    },
+  },
 );
-
+userSchema.pre('createCollection', function (params) {
+  console.log(this);
+});
 const User = model('User', userSchema);
-export default User
+export default User;

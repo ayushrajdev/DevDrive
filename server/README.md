@@ -58,7 +58,7 @@ src/
 │   ├── file.route.js
 │   └── directory.route.js
 ├── middleware/
-│   └── checkIsLoggedIn.js
+│   └── checkUserAuth.js
 ├── config/
 │   └── database.config.js
 ├── utils/
@@ -149,7 +149,7 @@ or
 Cookie: token=<jwt_token>
 ```
 
-**Protected Route:** Requires `checkIsLoggedIn` middleware
+**Protected Route:** Requires `checkUserAuth` middleware
 
 **Response:**
 ```json
