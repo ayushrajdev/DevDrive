@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import { ENV } from "./env.js";
 import cookieParser from "cookie-parser";
+import otpRouter from "./routes/otp.route.js";
 import fileRouter from "./routes/file.route.js";
 import userRouter from "./routes/user.route.js";
 import adminRouter from "./routes/admin.route.js";
@@ -23,6 +24,7 @@ app.use(
 
 app.use("/user", userRouter);
 app.use("/admin", adminRouter);
+app.use("/otp", otpRouter);
 app.use("/file", checkSessionValid, checkUserAuth, fileRouter);
 app.use("/directory", checkSessionValid, checkUserAuth, directoryRouter);
 

@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import Otp from "../models/otp.model.js";
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   //   port: 465,
@@ -8,17 +9,40 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function sendMail(recieverEmail) {
+export async function sendOtpWithMail(recieverEmail) {
   try {
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+    const savedOtp = await Otp.findOneAndUpdate(
+      {
+        email: recieverEmail,
+      },
+      {
+        otp,
+        // createdAt: new Date(),
+      },
+      {
+        upsert: true,
+        new: true,
+      },
+    );
     await transporter.sendMail({
       from: "DevDrive <devdrive.unaux.com>",
       to: recieverEmail,
       subject: "Verification OTP",
-      text: "Your OTP is 837997",
+      text: `Your OTP is ${otp}`,
     });
     console.log("Email sent to ", recieverEmail);
+    return {
+      success: true,
+      error: null,
+      message: "Otp sent to the user",
+    };
   } catch (error) {
     console.log(error.message);
+    return {
+      success: false,
+      error: error.message,
+      message: "Otp not sent to user",
+    };
   }
 }
-

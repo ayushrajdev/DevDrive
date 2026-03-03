@@ -148,6 +148,9 @@ async function logoutFromAllDevices(req, res, next) {
   await Session.deleteMany({ userId });
   res.json({ message: "logged out from all devices" });
 }
+async function sendOtp(req, res, next) {
+  // const  
+}
 
 const userController = {
   registerUser,

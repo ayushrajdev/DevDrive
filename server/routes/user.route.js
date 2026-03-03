@@ -2,11 +2,12 @@ import express from "express";
 import { checkUserAuth } from "../middlewares/auth.middleware.js";
 import userController from "../controllers/user.controller.js";
 import { checkSessionValid } from "../middlewares/session.middleware.js";
+import { checkOtp } from "../middlewares/otp.middleware.js";
 const router = express.Router();
 
-router.post("/register", userController.registerUser);
+router.post("/register", checkOtp.userController.registerUser);
 
-router.post("/login", userController.loginUser);
+router.post("/login", checkOtp, userController.loginUser);
 
 router.post("/logout", userController.logoutUser);
 router.post(
