@@ -5,6 +5,7 @@ import { ENV } from "./env.js";
 import cookieParser from "cookie-parser";
 import fileRouter from "./routes/file.route.js";
 import userRouter from "./routes/user.route.js";
+import adminRouter from "./routes/admin.route.js";
 import directoryRouter from "./routes/directory.route.js";
 import { checkUserAuth } from "./middlewares/auth.middleware.js";
 import { checkSessionValid } from "./middlewares/session.middleware.js";
@@ -21,6 +22,7 @@ app.use(
 );
 
 app.use("/user", userRouter);
+app.use("/admin", adminRouter);
 app.use("/file", checkSessionValid, checkUserAuth, fileRouter);
 app.use("/directory", checkSessionValid, checkUserAuth, directoryRouter);
 

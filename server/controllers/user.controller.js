@@ -9,6 +9,7 @@ import {
 } from "../middlewares/auth.middleware.js";
 import argon2 from "argon2";
 import Session from "../models/session.model.js";
+import { ENV } from "../env.js";
 
 async function registerUser(req, res, next) {
   const { db } = req;
@@ -90,6 +91,18 @@ async function loginUser(req, res) {
     //   id: user._id.toString(),
     // });
 
+    const loggedInUserSessions = await Session.find({ userId: user.id }).lean();
+
+    if (loggedInUserSessions.length > ENV.MAX_DEVICE_LIMIT) {
+      console.log(loggedInUserSessions);
+      const firstUser = loggedInUserSessions[0];
+      console.log(firstUser);
+      const removedFirstUser = await Session.deleteOne({
+        _id: firstUser._id,
+      });
+      console.log(removedFirstUser);
+    }
+
     const session = new Session({ userId: user._id });
     session.save();
 
@@ -110,8 +123,8 @@ async function loginUser(req, res) {
 
 async function logoutUser(req, res, next) {
   try {
-    const sessionId = req.signedCookies.sessionId
-    const session = await Session.findByIdAndDelete(sessionId)  
+    const sessionId = req.signedCookies.sessionId;
+    const session = await Session.findByIdAndDelete(sessionId);
     res.clearCookie("sessionId");
     return successResponse(res, "logged out successfull");
   } catch (error) {
@@ -128,11 +141,20 @@ async function getUserInfo(req, res, next) {
   }
 }
 
+async function logoutFromAllDevices(req, res, next) {
+  const session = req.session;
+  const userId = session.userId;
+
+  await Session.deleteMany({ userId });
+  res.json({ message: "logged out from all devices" });
+}
+
 const userController = {
   registerUser,
   loginUser,
   logoutUser,
   getUserInfo,
+  logoutFromAllDevices,
 };
 
 export default userController;

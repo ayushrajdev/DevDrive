@@ -9,6 +9,12 @@ router.post("/register", userController.registerUser);
 router.post("/login", userController.loginUser);
 
 router.post("/logout", userController.logoutUser);
+router.post(
+  "/logout/alldevices",
+  checkSessionValid,
+  checkUserAuth,
+  userController.logoutFromAllDevices,
+);
 
 router.get(
   "/profile",

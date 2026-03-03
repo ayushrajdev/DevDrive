@@ -7,7 +7,6 @@ export async function checkUserAuth(req, res, next) {
   // const { token } = req.cookies;
   const session = req.session;
   const userId = req.session.userId;
-  console.log(session,userId)
   // if (!token) return errorResponse(res, "token is not present");
   // const { expiry, id } = JSON.parse(Buffer.from(token, "hex").toString("utf8"));
   // const expiryTimeInSecond = parseInt(expiry, 16);

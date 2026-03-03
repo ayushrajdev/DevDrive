@@ -19,7 +19,6 @@ async function getDirDetails(req, res) {
             .populate('userId', 'email -_id')
             .select('name userId -_id');
 
-        console.log(directoryDetails);
 
         return res.json({ files, directories, directoryDetails });
     } catch (error) {
