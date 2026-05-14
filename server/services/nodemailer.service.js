@@ -9,10 +9,10 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function sendOtpWithMail(recieverEmail) {
+export async function sendOtpToEmail(recieverEmail) {
   try {
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
-    const savedOtp = await Otp.findOneAndUpdate(
+    const savedOtpInDb = await Otp.findOneAndUpdate(
       {
         email: recieverEmail,
       },

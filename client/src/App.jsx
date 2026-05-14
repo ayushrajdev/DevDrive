@@ -1,7 +1,19 @@
-// import { createBrowserRouter, RouterProvider } from "react-router-dom";
-// import DirectoryView from "./DirectoryView";
-// import LoginForm from "./Login";
-// import RegisterForm from "./Register";
+import {
+  createBrowserRouter,
+  Link,
+  NavLink,
+  RouterProvider,
+} from "react-router-dom";
+import DirectoryView from "./DirectoryView";
+import LoginForm from "./Login";
+import RegisterForm from "./Register";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
 // const router = createBrowserRouter([
 //   {
 //     path: "/",
@@ -29,5 +41,29 @@
 //   return <RouterProvider router={router} />;
 // };
 
-// export default App;
+const App = () => {
+  const { isPending, error, data } = useQuery({
+    queryKey: ["posts"],
+    queryFn: () =>
+      fetch("https://jsonplaceholder.typicode.com/posts").then((res) =>
+        res.json(),
+      ),
+    staleTime: 300000,
+  });
+  console.log(data);
+  return (
+    <div>
+      <div>
+        <Link to={"/"}>home</Link>
+        <br />
+        <Link to={"/rq"}>rq</Link>
+        <br />
+        <Link to={"/tq"}>tq</Link>
+      </div>
+      <h1>hello</h1>
+      <div>{JSON.stringify(data)}</div>
+    </div>
+  );
+};
 
+export default App;

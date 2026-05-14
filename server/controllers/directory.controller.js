@@ -19,7 +19,6 @@ async function getDirDetails(req, res) {
             .populate('userId', 'email -_id')
             .select('name userId -_id');
 
-
         return res.json({ files, directories, directoryDetails });
     } catch (error) {
         res.json({ error: error.message });
@@ -29,7 +28,7 @@ async function getDirDetails(req, res) {
 
 async function createNewDir(req, res) {
     try {
-        const {  user } = req;
+        const { user } = req;
         const { dirname } = req.params;
         // id of in which the user is creating new directory
         const parentDirId = req.body.parentDirId || user.rootDirId;
@@ -44,6 +43,8 @@ async function createNewDir(req, res) {
             name: dirname,
             parentDirId,
             userId: user._id,
+            size:0
+
         });
 
         res.json({ savedDir });
@@ -66,9 +67,7 @@ async function renameDir(req, res) {
             },
         );
 
-        console.log(result);
-
-        res.json({ m: 'folder renamed' });
+        return res.json({ m: 'folder renamed' });
     } catch (error) {
         console.log(error.message);
         res.json({ m: error.message });

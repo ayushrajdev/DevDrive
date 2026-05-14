@@ -1,5 +1,5 @@
 import app from './app.js';
-import { connectDb, disConnectDb } from './config/db.config.js';
+import { connectDb, disConnectDb } from './config/mongodb/db.config.js';
 
 process.on('SIGINT', async () => {
     await disConnectDb();

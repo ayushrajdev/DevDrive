@@ -58,7 +58,7 @@ src/
 │   ├── file.route.js
 │   └── directory.route.js
 ├── middleware/
-│   └── checkUserAuth.js
+│   └── checkUser.js
 ├── config/
 │   └── database.config.js
 ├── utils/
@@ -149,7 +149,7 @@ or
 Cookie: token=<jwt_token>
 ```
 
-**Protected Route:** Requires `checkUserAuth` middleware
+**Protected Route:** Requires `checkUser` middleware
 
 **Response:**
 ```json

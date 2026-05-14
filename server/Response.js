@@ -3,7 +3,7 @@ export function errorResponse(
     message = 'server error from errorresponse',
     status = 400,
 ) {
-    res.status(status).json({ message });
+    res.status(status).json({ message, success: false });
 }
 export function successResponse(res, message = 'success', status = 200) {
     res.status(status).json({ message });

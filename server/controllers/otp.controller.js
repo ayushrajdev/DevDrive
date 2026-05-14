@@ -1,12 +1,10 @@
 import Otp from "../models/otp.model.js";
-import { sendOtpWithMail } from "../services/nodemailer.service.js";
+import { sendOtpToEmail } from "../services/nodemailer.service.js";
 
 async function sendOtp(req, res, next) {
   try {
     const email = req.body.email;
-    console.log(req.body);
-    const result = await sendOtpWithMail(email);
-    console.log(email);
+    const result = await sendOtpToEmail(email);
     return res.json(result);
   } catch (error) {
     console.log(error.message);

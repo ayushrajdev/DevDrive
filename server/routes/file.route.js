@@ -1,6 +1,7 @@
-import express from "express";
-import fileController from "../controllers/file.controller.js";
-import { ObjectId } from "mongodb";
+import express from 'express';
+import fileController from '../controllers/file.controller.js';
+import { ObjectId } from 'mongodb';
+import { checkAvilableSpaceForFileUpload } from '../middlewares/file.middleware.js';
 
 const router = express.Router();
 
@@ -12,15 +13,19 @@ const router = express.Router();
 // });
 
 //vfs done ✅
-router.post("/:filename", fileController.createFile);
+router.post(
+    '/:filename',
+    checkAvilableSpaceForFileUpload,
+    fileController.createFile,
+);
 
 // vfs done ✅
-router.delete("/:id", fileController.deleteFile);
+router.delete('/:id', fileController.deleteFile);
 
 //vfs done✅
-router.get("/:id", fileController.getFile);
+router.get('/:id', fileController.getFile);
 
 // vfs done ✅
-router.put("/:id", fileController.renameFile);
+router.put('/:id', fileController.renameFile);
 
 export default router;

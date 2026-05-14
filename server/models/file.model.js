@@ -12,13 +12,17 @@ const FileSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: 'User',
         },
+        size: {
+            type: Number,
+            default: 0,
+            required: true,
+        },
     },
     {
         timestamps: true,
-        strict: "throw",
+        strict: 'throw',
     },
 );
 
-
 const File = model('File', FileSchema);
-export default File
+export default File;
