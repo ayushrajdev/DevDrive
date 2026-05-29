@@ -1,4 +1,4 @@
-import { errorResponse } from '../../Response.js';
+import { errorResponse } from '../Response.js';
 import crypto from 'crypto';
 
 export function checkAuthToken(res, token) {

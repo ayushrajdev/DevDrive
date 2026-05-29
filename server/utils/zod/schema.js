@@ -8,5 +8,4 @@ export const loginSchema = z.object({
 
 export const registerSchema = loginSchema.extend({
     name: z.string().min(3).max(50),
-
 });

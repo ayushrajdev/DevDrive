@@ -1,0 +1,58 @@
+import { Stripe } from 'stripe';
+import PaymentProvider from './payment.provider.js';
+
+export default class StripePaymentProvider extends PaymentProvider {
+    constructor() {
+        super();
+        this.stripe = new Stripe(
+            'sk_test_51TZ4zU314gNOOU07CVlj3yScdeLYBUPimoeNw9eBBUFYuU2uwnMhML7pqJlEBPHtfrQCqvFo4QQOTy7bFPAjWP2t00izTrCYOW',
+        );
+    }
+    async createSubscription({
+        planId,
+        userInfo,
+        selectedPlanPricing,
+        mode = 'subscription',
+    }) {
+        console.warn('inside stripe subs', {
+            planId,
+            userInfo,
+            selectedPlanPricing,
+            mode,
+        });
+        const subscription = await this.stripe.checkout.sessions.create({
+            mode,
+            line_items: [
+                {
+                    price: planId,
+                    quantity: 1,
+                    metadata: {},
+                },
+            ],
+            metadata: userInfo,
+            success_url: 'http://localhost:4000',
+            // cancel_url: '',
+            currency: selectedPlanPricing?.currency || "INR",
+            client_reference_id: userInfo._id,
+        });
+        return subscription;
+    }
+
+    createOneTimePayment = async ({
+        planId,
+        userInfo,
+        selectedPlanPricing,
+    }) => {
+        const oneTimePayment = await this.createSubscription({
+            planId,
+            userInfo,
+            selectedPlanPricing,
+            mode: 'payment',
+        });
+        return oneTimePayment;
+    };
+
+    verifyWebhook() {
+        throw 'Not Implemented';
+    }
+}
