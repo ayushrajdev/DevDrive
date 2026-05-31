@@ -6,7 +6,7 @@ class V2NodemailerService {
                 {
                     email: recieverEmail,
                 },
-                {
+                {   
                     otp,
                     // createdAt: new Date(),
                 },

@@ -11,7 +11,6 @@ import v2Router from './routers/v2/index.js';
 const app = express();
 
 app.use(helmet());
-app.use(express.json());
 app.use(cookieParser(ENV.SECRET_KEY));
 
 app.use(

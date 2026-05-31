@@ -13,27 +13,30 @@ export default class V2PaymentService {
         provider,
         userInfo,
     }) => {
-        // const selectedPlan = await this.planRepository.getPlanById({ planId });
-        // if (!selectedPlan) {
-        //     throw new Error('Plan not found');
-        // }
+        const selectedPlan = await this.planRepository.getPlanById({ planId });
+        if (!selectedPlan) {
+            throw new Error('Plan not found');
+        }
 
-        // var selectedPlanPricing = selectedPlan.pricingOptions.find(
-        //     (pricingOption) => {
-        //         return (
-        //             pricingOption.billingCycle == billingCycle &&
-        //             pricingOption.paymentType == paymentType
-        //         );
-        //     },
-        // );
-        // if (!selectedPlanPricing) {
-        //     throw new Error(
-        //         'billing cycle and payment type confi do not match',
-        //     );
-        // }
+        var selectedPlanPricing = selectedPlan.pricingOptions.find(
+            (pricingOption) => {
+                return (
+                    pricingOption.billingCycle == billingCycle &&
+                    pricingOption.paymentType == paymentType
+                );
+            },
+        );
+        if (!selectedPlanPricing) {
+            throw new Error(
+                'billing cycle and payment type confi do not match',
+            );
+        }
 
-        // var providerPlanId =
-        //     selectedPlanPricing.providers[provider].providerPlanId;
+        const providerConfig = selectedPlanPricing.providers.find(
+            (p) => p.provider === provider,
+        );
+
+        var providerPlanId = providerConfig.providerPlanId;
 
         var providerPlanId = 'plan_Suii8V3yAIThMT';
         var providerPlanId = 'price_1TbzSQ314gNOOU07neClnDTf';
@@ -47,12 +50,19 @@ export default class V2PaymentService {
         if (paymentType == 'one_time' && billingCycle == 'lifetime') {
             console.warn('inside the oneTimePAyemnt');
             const oneTimePayment = payementProvider.createOneTimePayment({
+                // selectedPlanPricing,
                 selectedPlanPricing: {
-                    amount: 970,
-                    currency: 'INR',
+                    amount: selectedPlanPricing.amount,
+                    currency: selectedPlanPricing.currency,
                 },
                 userInfo,
                 planId: providerPlanId,
+                metadata: {
+                    planId,
+                    paymentType,
+                    billingCycle,
+                    userId: userInfo._id,
+                },
             });
             return oneTimePayment;
         } else {
@@ -60,6 +70,12 @@ export default class V2PaymentService {
             const subscription = await payementProvider.createSubscription({
                 planId: providerPlanId,
                 userInfo,
+                metadata: {
+                    planId,
+                    paymentType,
+                    billingCycle,
+                    userId: userInfo._id,
+                },
             });
 
             return subscription;

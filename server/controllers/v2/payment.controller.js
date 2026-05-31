@@ -30,16 +30,16 @@ export default class V2PaymentController {
                 userInfo,
             });
 
-            const subscription =
-                await this.subscriptionRepository.createSubcription({
-                    billingCycle,
-                    paymentType,
-                    planId,
-                    provider,
-                    status: 'pending',
-                    userId: userInfo._id,
-                });
-            console.log(subscription);
+            // const subscription =
+            //     await this.subscriptionRepository.createSubcription({
+            //         billingCycle,
+            //         paymentType,
+            //         planId,
+            //         provider,
+            //         status: 'pending',
+            //         userId: userInfo._id,
+            //     });
+            // console.log(subscription);
 
             var responseObj = {
                 provider: '',
@@ -105,5 +105,4 @@ export default class V2PaymentController {
             next(error);
         }
     };
-    verifyWebhook = async () => {};
 }

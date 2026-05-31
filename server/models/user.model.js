@@ -41,9 +41,11 @@ const userSchema = new Schema(
             default: 1024 ** 3,
         },
 
-        // age: {
-        //   type: Number,
-        // },
+        providerSubscriptionId: {
+            type: String,
+        },
+
+
     },
 
     {

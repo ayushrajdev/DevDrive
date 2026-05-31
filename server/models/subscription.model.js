@@ -22,7 +22,16 @@ const subscriptionSchema = new Schema(
 
         providerSubscriptionId: {
             type: String,
-            required: true,
+        },
+
+        providerCustomerId: {
+            type: String,
+        },
+        providerCustomerId: {
+            type: String,
+        },
+        providerPlanId: {
+            type: String,
         },
 
         paymentType: {
@@ -61,6 +70,8 @@ const subscriptionSchema = new Schema(
         cancelledAt: Date,
 
         trialEndsAt: Date,
+
+        metadata: {},
     },
     {
         timestamps: true,
@@ -68,4 +79,4 @@ const subscriptionSchema = new Schema(
 );
 
 const Subscription = model('Subscription', subscriptionSchema);
-export default Subscription
+export default Subscription;

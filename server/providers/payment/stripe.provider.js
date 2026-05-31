@@ -13,13 +13,9 @@ export default class StripePaymentProvider extends PaymentProvider {
         userInfo,
         selectedPlanPricing,
         mode = 'subscription',
+        metadata,
     }) {
-        console.warn('inside stripe subs', {
-            planId,
-            userInfo,
-            selectedPlanPricing,
-            mode,
-        });
+
         const subscription = await this.stripe.checkout.sessions.create({
             mode,
             line_items: [
@@ -29,10 +25,10 @@ export default class StripePaymentProvider extends PaymentProvider {
                     metadata: {},
                 },
             ],
-            metadata: userInfo,
-            success_url: 'http://localhost:4000',
-            // cancel_url: '',
-            currency: selectedPlanPricing?.currency || "INR",
+            metadata,
+            success_url: 'http://localhost:4000/success',
+            cancel_url: 'http://localhost:4000/cancel',
+            currency: selectedPlanPricing?.currency || 'INR',
             client_reference_id: userInfo._id,
         });
         return subscription;
@@ -42,14 +38,16 @@ export default class StripePaymentProvider extends PaymentProvider {
         planId,
         userInfo,
         selectedPlanPricing,
+        metadata,
     }) => {
-        const oneTimePayment = await this.createSubscription({
+        const session = await this.createSubscription({
             planId,
             userInfo,
             selectedPlanPricing,
             mode: 'payment',
+            metadata,
         });
-        return oneTimePayment;
+        return session;
     };
 
     verifyWebhook() {

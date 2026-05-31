@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import express,{ Router }  from 'express';
 // import authRouter from './auth.route.js';
 // import userRouter from './auth.route.js';
 // import otpRouter from './auth.route.js';
@@ -9,6 +9,10 @@ import webhookRouter from './webhook.route.js';
 
 const v2Router = Router();
 
+v2Router.use('/webhooks', webhookRouter);
+
+v2Router.use(express.json())
+
 // app.use('/otp', otpRouter);
 // app.use('/auth', authRouter);
 // app.use('/users', userRouter);
@@ -16,6 +20,5 @@ const v2Router = Router();
 // app.use('/directory', checkSession, checkUser, directoryRouter);
 // app.use('/payments', checkSession, checkUser, paymentRouter);
 v2Router.use('/payments', paymentRouter);
-v2Router.use('/webhooks', webhookRouter);
 
 export default v2Router;

@@ -11,6 +11,15 @@ export default class MongoSubscriptionRepository {
         planId,
         provider,
         userId,
+        cancelAtPeriodEnd,
+        cancelledAt,
+        trialEndsAt,
+        providerSubscriptionId,
+        currentPeriodEnd,
+        metadata,
+        currentPeriodStart,
+        providerCustomerId,
+        providerPlanId,
     }) {
         const subscription = await this.Subscription.findOneAndUpdate(
             { userId },
@@ -22,10 +31,28 @@ export default class MongoSubscriptionRepository {
                     planId,
                     provider,
                     userId,
+                    cancelAtPeriodEnd,
+                    cancelledAt,
+                    trialEndsAt,
+                    providerSubscriptionId,
+                    currentPeriodEnd,
+                    metadata,
+                    currentPeriodStart,
+                    providerCustomerId,
+                    providerPlanId,
                 },
             },
             { upsert: true },
         );
         return subscription;
     }
+
+ 
+    updateByProviderSubscriptionId = async (providerSubscriptionId, update) => {
+        return Subscription.findOneAndUpdate(
+            { providerSubscriptionId },
+            { $set: update },
+            { new: true },
+        );
+    };
 }

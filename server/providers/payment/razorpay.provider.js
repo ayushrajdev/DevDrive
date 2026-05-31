@@ -9,36 +9,35 @@ export default class RazorpayProvider extends PaymentProvider {
             key_secret: '3LOIWxR88LhXqTDH9LO9I456',
         });
     }
-    async createSubscription({ planId, userInfo }) {
+    async createSubscription({ planId, userInfo, metadata }) {
         const subscription = await this.razorpay.subscriptions.create({
             plan_id: planId,
-            notes: userInfo,
             quantity: 1,
-            total_count: 120,
+            total_count: 36,
+            notes: metadata,
         });
         return subscription;
     }
 
-    createOneTimePayment = async ({ userInfo, selectedPlanPricing }) => {
-        console.log(
-            'in create payment ',
-            typeof selectedPlanPricing.amount,
-            selectedPlanPricing,
-        );
-        const oneTimePayment = await this.razorpay.orders.create({
-            amount: 10000,
-            currency: 'INR',
-            notes: userInfo,
+    createOneTimePayment = async ({
+        selectedPlanPricing,
+        userInfo,
+        planId,
+        metadata,
+    }) => {
+        const orderSession = await this.razorpay.orders.create({
+            amount: selectedPlanPricing.amount,
+            currency: selectedPlanPricing.currency,
+            notes: metadata,
         });
-        console.log(oneTimePayment);
-        return oneTimePayment;
+        return orderSession;
     };
 
     verifyWebhook({ data, signature }) {
         const isValidRequest = Razorpay.validateWebhookSignature(
             data,
             signature,
-            'mysecret',
+            '1234',
         );
         return isValidRequest;
     }
