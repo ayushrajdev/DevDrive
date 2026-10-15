@@ -4,9 +4,12 @@ import PaymentProvider from './payment.provider.js';
 export default class RazorpayProvider extends PaymentProvider {
     constructor() {
         super();
+        if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+            throw new Error('RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are required for Razorpay payments');
+        }
         this.razorpay = new Razorpay({
-            key_id: 'rzp_test_SreKkWHYNxa7dk',
-            key_secret: '3LOIWxR88LhXqTDH9LO9I456',
+            key_id: process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET,
         });
     }
     async createSubscription({ planId, userInfo, metadata }) {
@@ -37,7 +40,7 @@ export default class RazorpayProvider extends PaymentProvider {
         const isValidRequest = Razorpay.validateWebhookSignature(
             data,
             signature,
-            '1234',
+            process.env.RAZORPAY_WEBHOOK_SECRET,
         );
         return isValidRequest;
     }

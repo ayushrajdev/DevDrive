@@ -1,9 +1,8 @@
 import mongoose from 'mongoose';
-
-const url = 'mongodb://localhost:27017/DevDrive';
+import { ENV } from '../../utils/env.js';
 
 export async function connectDb() {
-    await mongoose.connect(url);
+    await mongoose.connect(ENV.MONGODB_URL);
 }
 
 export async function disConnectDb() {

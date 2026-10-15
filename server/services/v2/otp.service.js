@@ -1,10 +1,11 @@
-import transporter from '../../config/nodemailer/nodemailer.config';
+import transporter from '../../config/nodemailer/nodemailer.config.js';
 
 class V2OtpService {
     constructor({otpRepository}) {
         this.otpRepository = otpRepository;
     }
     async sendOtpToEmail(email) {
+        if (!transporter) throw new Error('SMTP_HOST is required to send email');
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
         const isSavedOtp = await this.otpRepository.upsertOtp({ otp, email });
@@ -19,10 +20,10 @@ class V2OtpService {
 
     async verifyOtp({ email, otpSentByClient }) {
         const savedOtp = await this.otpRepository.getOtp(email);
-        if (!(otpSentByClient === savedOtp.otp)) {
+        if (!savedOtp || otpSentByClient !== savedOtp.otp) {
             return false;
         }
-        return true
+        return true;
     }
 }
 

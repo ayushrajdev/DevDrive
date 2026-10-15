@@ -1,12 +1,18 @@
 import { errorResponse } from '../Response.js';
 import crypto from 'crypto';
+import { ENV } from '../env.js';
+
+function getSecret() {
+    if (!ENV.SECRET_KEY) throw new Error('JWT_SECRET_KEY is required for authentication');
+    return ENV.SECRET_KEY;
+}
 
 export function checkAuthToken(res, token) {
     const [cookiePayload, signature] = token.split('.');
     const hashOfData = crypto
         .createHash('sha256')
         .update(Buffer.from(cookiePayload, 'base64url').toString('utf8'))
-        .update(process.env.SECRET_KEY)
+        .update(getSecret())
         .digest('base64url');
 
     if (hashOfData == signature) {
@@ -36,7 +42,7 @@ export function Generate_JWT_Token(res, user) {
     const signature = crypto
         .createHash('sha256')
         .update(cookiePayload)
-        .update(process.env.SECRET_KEY)
+        .update(getSecret())
         .digest('base64url');
 
     const signedCookiePayload = `${Buffer.from(cookiePayload).toString('base64url')}.${signature}`;

@@ -3,7 +3,6 @@ import MongoSubscriptionRepository from '../repositories/mongodb/subscription.re
 
 export default class StripeWebhooks {
     constructor() {
-        this.stripeService = new StripePaymentProvider();
         this.subscriptionRepository = new MongoSubscriptionRepository();
     }
 
@@ -13,6 +12,7 @@ export default class StripeWebhooks {
         let event;
 
         try {
+            this.stripeService = new StripePaymentProvider();
             event = this.stripeService.stripe.webhooks.constructEvent(
                 req.body,
                 sig,
@@ -288,145 +288,3 @@ export default class StripeWebhooks {
 //     },
 //     created_at: 1780061899,
 // };
-
-b = {
-    id: 'evt_1NsA2xLkdE7Bv6vN6J9k8L0m',
-    object: 'event',
-    api_version: '2023-10-16',
-    created: 1695213600,
-    data: {
-        object: {
-            id: 'cs_test_a1b2c3d4e5f6g7h8i9j0',
-            object: 'checkout.session',
-            amount_subtotal: 3000,
-            amount_total: 3000,
-            automatic_tax: {
-                enabled: false,
-                status: null,
-            },
-            billing_address_collection: null,
-            cancel_url: 'https://example.com',
-            client_reference_id: 'user_12345',
-            currency: 'usd',
-            customer: 'cus_9s8f7D6s5A',
-            customer_details: {
-                email: 'customer@example.com',
-                name: 'Jane Doe',
-                phone: '+15555555555',
-                tax_exempt: 'none',
-            },
-            invoice: 'in_1NsA2wLkdE7Bv6vN7M8k9P0q',
-            line_items: null,
-            livemode: false,
-            metadata: {
-                order_id: 'XYZ-98765',
-            },
-            mode: 'payment',
-            payment_intent: 'pi_3NsA2vLkdE7Bv6vN0A1b2C3d',
-            payment_status: 'paid',
-            status: 'complete',
-            success_url: 'https://example.com',
-        },
-    },
-    livemode: false,
-    pending_webhooks: 1,
-    request: {
-        id: 'req_XyZ123abc789',
-        idempotency_key: '4a7b5c8d-9e0f-1a2b-3c4d-5e6f7a8b9c0d',
-    },
-    type: 'checkout.session.completed',
-};
-
-c = {
-    id: 'evt_1N2x3y4z5A6B7C8D',
-    object: 'event',
-    api_version: '2023-10-16',
-    created: 1683012345,
-    data: {
-        object: {
-            id: 'cs_test_a1B2c3D4e5F6g7H8i9J0k1L2m3',
-            object: 'checkout.session',
-            amount_subtotal: 2999,
-            amount_total: 2999,
-            automatic_tax: {
-                enabled: false,
-                status: null,
-            },
-            billing_address_collection: null,
-            cancel_url: 'https://example.com',
-            client_reference_id: 'user_123456789',
-            consent: null,
-            consent_collection: null,
-            created: 1683012300,
-            currency: 'usd',
-            currency_conversion: null,
-            custom_fields: [],
-            custom_text: {
-                after_submit: null,
-                shipping_address: null,
-                submit: null,
-                terms_of_service: null,
-            },
-            customer: 'cus_O1p2q3r4s5t6u7',
-            customer_creation: 'if_required',
-            customer_details: {
-                address: {
-                    city: 'San Francisco',
-                    country: 'US',
-                    line1: '123 Market St',
-                    line2: null,
-                    postal_code: '94105',
-                    state: 'CA',
-                },
-                email: 'customer@example.com',
-                name: 'Jane Doe',
-                phone: null,
-                tax_exempt: 'none',
-                tax_ids: [],
-            },
-            customer_email: null,
-            expires_at: 1683098700,
-            invoice: 'in_1N2x3y4z5A6B7C8E',
-            invoice_creation: null,
-            livemode: false,
-            locale: null,
-            metadata: {
-                internal_order_id: 'xyz_98765',
-            },
-            mode: 'subscription',
-            payment_intent: null,
-            payment_link: null,
-            payment_method_collection: 'always',
-            payment_method_configuration_details: null,
-            payment_method_options: {},
-            payment_method_types: ['card'],
-            payment_status: 'paid',
-            phone_number_collection: {
-                enabled: false,
-            },
-            recovered_from: null,
-            setup_intent: null,
-            shipping_address_collection: null,
-            shipping_cost: null,
-            shipping_details: null,
-            shipping_options: [],
-            status: 'complete',
-            submit_type: null,
-            subscription: 'sub_1N2x3y4z5A6B7C8F',
-            success_url: 'https://example.com{CHECKOUT_SESSION_ID}',
-            total_details: {
-                amount_discount: 0,
-                amount_shipping: 0,
-                amount_tax: 0,
-            },
-            url: null,
-        },
-    },
-    livemode: false,
-    pending_webhooks: 1,
-    request: {
-        id: 'req_X1y2Z3w4V5u6',
-        idempotency_key: '7b9b12c4-8392-494b-9721-3965b380ad91',
-    },
-    type: 'checkout.session.completed',
-};

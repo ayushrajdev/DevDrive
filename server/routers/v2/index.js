@@ -11,7 +11,7 @@ const v2Router = Router();
 
 v2Router.use('/webhooks', webhookRouter);
 
-v2Router.use(express.json())
+v2Router.use(express.json({ limit: '1mb' }));
 
 // app.use('/otp', otpRouter);
 // app.use('/auth', authRouter);

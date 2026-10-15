@@ -1,42 +1,45 @@
-import V2OtpRepository from '../../repositories/mongodb/otp.repository';
-import V2OtpService from '../../services/v2/otp.service';
+import V2OtpRepository from '../../repositories/mongodb/otp.repository.js';
+import V2OtpService from '../../services/v2/otp.service.js';
 
 class V2OtpController {
-    constructor({optService}) {
-        const otpRepository = new V2OtpRepository();
-        const optService = new V2OtpService(otpRepository);
-        this.optService = optService;
+    constructor({ otpService } = {}) {
+        const repository = new V2OtpRepository();
+        this.otpService = otpService ?? new V2OtpService({ otpRepository: repository });
     }
-    async sendOtpToEmail(req, res, next) {
+    sendOtpToEmail = async (req, res, next) => {
         try {
             const email = req.body.email;
-            await this.optService.sendOtpToEmail(email);
-            return res.end();
+            await this.otpService.sendOtpToEmail(email);
+            return res.status(200).json({ success: true, message: 'OTP sent' });
         } catch (error) {
             next(error);
         }
-    }
-    async verifyOtp(req, res, next) {
+    };
+
+    verifyOtp = async (req, res, next) => {
         try {
             const otpSentByClient = req.body.otp;
             const email = req.body.email;
 
-            const isCorrectOtp = await this.optService.verifyOtp({
+            const isCorrectOtp = await this.otpService.verifyOtp({
                 email,
                 otpSentByClient,
             });
 
             if (!isCorrectOtp) {
-                throw "otp sent by user is not valid!!";
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid OTP',
+                });
             }
 
             return res
                 .status(200)
                 .json({ success: true, message: 'valid user' });
         } catch (error) {
-            console.log(error.message);
+            next(error);
         }
-    }
+    };
 }
 
 export default V2OtpController;

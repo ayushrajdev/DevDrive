@@ -11,15 +11,18 @@ export default class V2PaymentController {
             let { planId, paymentType, billingCycle, provider } = req.body;
             const userInfo = req.user;
 
-            console.log({
-                planId,
-                paymentType,
-                billingCycle,
-                provider,
-            });
 
             if (!(provider == 'razorpay' || provider == 'stripe')) {
-                return res.end('no provider');
+                return res.status(400).json({
+                    success: false,
+                    message: 'provider must be razorpay or stripe',
+                });
+            }
+            if (!userInfo) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Authentication is required',
+                });
             }
 
             const payment = await this.paymentService.createSubscription({

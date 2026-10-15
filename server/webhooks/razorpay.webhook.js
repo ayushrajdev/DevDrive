@@ -14,7 +14,6 @@ import MongoSubscriptionRepository from '../repositories/mongodb/subscription.re
 
 export default class RazorpayWebhooks {
     constructor() {
-        this.razorpayProvider = new RazorpayProvider();
         this.subscriptionRepository = new MongoSubscriptionRepository();
     }
     handleWebhook = async (req, res) => {
@@ -342,6 +341,6 @@ export default class RazorpayWebhooks {
     // ─── Signature Verification ───────────────────────────────────────────────
 
     verifyWebhook({ data, signature }) {
-        return this.razorpayProvider.verifyWebhook({ data, signature });
+        return new RazorpayProvider().verifyWebhook({ data, signature });
     }
 }

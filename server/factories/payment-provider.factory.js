@@ -10,7 +10,7 @@ export default class PaymentProviderFactory {
                 return new StripePaymentProvider();
 
             default:
-                throw 'no payment provider is provided';
+                throw new Error(`Unsupported payment provider: ${provider}`);
         }
     };
 }

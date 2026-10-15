@@ -2,8 +2,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 export const s3Client = new S3Client({
-    profile: 'devdrive',
-    // credentials:{}
+    region: process.env.AWS_REGION || 'ap-south-1',
 });
 
 export function GenerateS3PreSignedUrl({
@@ -12,14 +11,18 @@ export function GenerateS3PreSignedUrl({
     ContentLength,
 }) {
     const command = new PutObjectCommand({
-        Bucket: 'devdrive-web',
+        Bucket: process.env.S3_BUCKET,
         Key: fileName,
         Expires: 3600,
         ContentLength,
         ContentType,
     });
 
-    const preSignedUrl = getSignedUrl(s3Client, command, {
+    if (!process.env.S3_BUCKET) {
+        throw new Error('S3_BUCKET is required for file uploads');
+    }
+
+    return getSignedUrl(s3Client, command, {
         expiresIn: 3600,
         signableHeaders: new Set(['content-type']),
     });

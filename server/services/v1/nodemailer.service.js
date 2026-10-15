@@ -1,16 +1,9 @@
-import nodemailer from "nodemailer";
 import Otp from "../../models/otp.model.js";
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  //   port: 465,
-  auth: {
-    user: "ayushraj2482@gmail.com",
-    pass: "yftf acgb alpy ipge",
-  },
-});
+import transporter from "../../config/nodemailer/nodemailer.config.js";
 
 export async function sendOtpToEmail(recieverEmail) {
   try {
+    if (!transporter) throw new Error("SMTP_HOST is required to send email");
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
     const savedOtpInDb = await Otp.findOneAndUpdate(
       {

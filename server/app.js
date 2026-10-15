@@ -1,4 +1,3 @@
-import './utils/env.js';
 import cors from 'cors';
 import helmet from 'helmet';
 import express from 'express';
@@ -6,47 +5,34 @@ import { ENV } from './utils/env.js';
 import cookieParser from 'cookie-parser';
 import v2Router from './routers/v2/index.js';
 
-
-
 const app = express();
 
 app.use(helmet());
 app.use(cookieParser(ENV.SECRET_KEY));
-
 app.use(
     cors({
-        origin: true,
+        origin: ENV.CORS_ORIGINS,
         credentials: true,
     }),
 );
 
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', environment: ENV.NODE_ENV });
+});
 
+app.use('/api/v2', v2Router);
 
-
-app.use("/api/v2",v2Router)
+app.use((req, res) => {
+    res.status(404).json({ success: false, message: 'Route not found' });
+});
 
 app.use((err, req, res, next) => {
-    console.log(err);
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    const status = Number.isInteger(err.statusCode) ? err.statusCode : 500;
+    res.status(status).json({
+        success: false,
+        message: status === 500 ? 'Internal server error' : err.message,
+    });
 });
 
 export default app;
-
-// //http redirection
-// app.all("/", async (req, res, next) => {
-//   //M1
-//   // res.set({
-//   //   Location: "/user/profile",
-//   // });
-//   // res.status(301).end();
-
-//   // M2
-//   // res
-//   //   .writeHead(301, {
-//   //     location: "/user/profile",
-//   //   })
-//   //   .end()
-
-//   //M3
-//   res.redirect(301, "/user/profile");
-// });

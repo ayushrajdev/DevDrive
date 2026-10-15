@@ -36,10 +36,10 @@ export default class V2PaymentService {
             (p) => p.provider === provider,
         );
 
-        var providerPlanId = providerConfig.providerPlanId;
-
-        var providerPlanId = 'plan_Suii8V3yAIThMT';
-        var providerPlanId = 'price_1TbzSQ314gNOOU07neClnDTf';
+        if (!providerConfig?.providerPlanId) {
+            throw new Error(`No ${provider} plan is configured for this pricing option`);
+        }
+        const providerPlanId = providerConfig.providerPlanId;
 
         const payementProvider = PaymentProviderFactory.create(provider);
 
@@ -49,7 +49,7 @@ export default class V2PaymentService {
 
         if (paymentType == 'one_time' && billingCycle == 'lifetime') {
             console.warn('inside the oneTimePAyemnt');
-            const oneTimePayment = payementProvider.createOneTimePayment({
+            const oneTimePayment = await payementProvider.createOneTimePayment({
                 // selectedPlanPricing,
                 selectedPlanPricing: {
                     amount: selectedPlanPricing.amount,

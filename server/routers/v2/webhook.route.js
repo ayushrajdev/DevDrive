@@ -10,11 +10,13 @@ const stripeWebhooks = new StripeWebhooks();
 router.post(
     '/subscriptions/razorpay',
     express.raw({ type: 'application/json' }),
-    razorpayWebhooks.handleSubscriptions,
+    razorpayWebhooks.handleWebhook,
 );
 
-router.use(express.json())
-
-router.post('/subscriptions/stripe', stripeWebhooks.handleSubscriptions);
+router.post(
+    '/subscriptions/stripe',
+    express.raw({ type: 'application/json' }),
+    stripeWebhooks.handleSubscriptions,
+);
 
 export default router;

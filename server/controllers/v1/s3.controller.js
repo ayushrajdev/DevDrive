@@ -1,7 +1,7 @@
 import File from '../../models/file.model.js';
 import { errorResponse } from '../../utils/Response.js';
 import { GenerateS3PreSignedUrl } from '../../services/aws/s3.service.js';
-import { updateDirectorySize } from '../file.controller.js';
+import { updateDirectorySize } from './file.controller.js';
 
 async function generatePresignedUrl(req, res) {
     const { id: userId, rootDirId } = req.user;
@@ -28,7 +28,7 @@ async function generatePresignedUrl(req, res) {
 
     await file.save();
 
-    const preSignedUrl = GenerateS3PreSignedUrl({
+    const preSignedUrl = await GenerateS3PreSignedUrl({
         ContentLength,
         ContentType,
         fileName,

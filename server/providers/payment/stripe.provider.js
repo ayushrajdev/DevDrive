@@ -4,9 +4,10 @@ import PaymentProvider from './payment.provider.js';
 export default class StripePaymentProvider extends PaymentProvider {
     constructor() {
         super();
-        this.stripe = new Stripe(
-            'sk_test_51TZ4zU314gNOOU07CVlj3yScdeLYBUPimoeNw9eBBUFYuU2uwnMhML7pqJlEBPHtfrQCqvFo4QQOTy7bFPAjWP2t00izTrCYOW',
-        );
+        if (!process.env.STRIPE_SECRET_KEY) {
+            throw new Error('STRIPE_SECRET_KEY is required for Stripe payments');
+        }
+        this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     }
     async createSubscription({
         planId,
