@@ -90,8 +90,8 @@ export class FileController {
     renameFile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const id = typeof req.params.id === 'string' ? req.params.id : String(req.params.id);
-            const { newFileName, name } = req.body;
-            const targetName = newFileName || name;
+            const { newFileName, newFilename, name } = req.body;
+            const targetName = newFileName || newFilename || name;
             const userId = String(req.user!._id);
 
             const updated = await this.fileService.renameFile(id, targetName, userId);
@@ -117,6 +117,22 @@ export class FileController {
                 success: true,
                 message: 'File deleted successfully',
                 data: deleted,
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getStorageUsage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const user = req.user!;
+            const usedBytes = await this.fileService.getUsedStorage(String(user._id));
+            res.status(200).json({
+                success: true,
+                data: {
+                    usedBytes,
+                    maxBytes: user.maxStorageInBytes,
+                },
             });
         } catch (error) {
             next(error);

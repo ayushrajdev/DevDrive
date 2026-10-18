@@ -17,7 +17,11 @@ export function createApp(container: AppContainer = new AppContainer()): Express
     const app = express();
 
     // ── Global Security & Parser Middlewares ─────────────────────────────────
-    app.use(helmet());
+    app.use(
+        helmet({
+            crossOriginResourcePolicy: { policy: 'cross-origin' },
+        }),
+    );
     app.use(cookieParser(ENV.SECRET_KEY));
     app.use(
         cors({
@@ -35,29 +39,29 @@ export function createApp(container: AppContainer = new AppContainer()): Express
         });
     });
 
-    // ── API v2 Router ────────────────────────────────────────────────────────
-    const v2Router = Router();
+    // ── API Router (/api/*) ──────────────────────────────────────────────────
+    const apiRouter = Router();
 
     // 1. Webhooks MUST be registered before express.json() to preserve raw body buffers
     const webhookRouter = createWebhookRouter(
         container.razorpayWebhookHandler,
         container.stripeWebhookHandler,
     );
-    v2Router.use('/webhooks', webhookRouter);
+    apiRouter.use('/webhooks', webhookRouter);
 
     // 2. Standard JSON body parsers
-    v2Router.use(express.json({ limit: '10mb' }));
-    v2Router.use(express.urlencoded({ extended: true }));
+    apiRouter.use(express.json({ limit: '10mb' }));
+    apiRouter.use(express.urlencoded({ extended: true }));
 
     // 3. Module Routers
-    v2Router.use('/auth', createAuthRouter(container.authController));
-    v2Router.use('/users', createUserRouter(container.userController, container.sessionMiddleware, container.authMiddleware));
-    v2Router.use('/otp', createOtpRouter(container.otpController));
-    v2Router.use('/payments', createPaymentRouter(container.paymentController, container.sessionMiddleware, container.authMiddleware));
-    v2Router.use('/directory', createDirectoryRouter(container.directoryController, container.sessionMiddleware, container.authMiddleware));
-    v2Router.use('/files', createFileRouter(container.fileController, container.sessionMiddleware, container.authMiddleware));
+    apiRouter.use('/auth', createAuthRouter(container.authController));
+    apiRouter.use('/users', createUserRouter(container.userController, container.sessionMiddleware, container.authMiddleware));
+    apiRouter.use('/otp', createOtpRouter(container.otpController));
+    apiRouter.use('/payments', createPaymentRouter(container.paymentController, container.sessionMiddleware, container.authMiddleware));
+    apiRouter.use('/directory', createDirectoryRouter(container.directoryController, container.sessionMiddleware, container.authMiddleware));
+    apiRouter.use('/files', createFileRouter(container.fileController, container.sessionMiddleware, container.authMiddleware));
 
-    app.use('/api/v2', v2Router);
+    app.use('/api', apiRouter);
 
     // ── 404 Route Not Found Handler ──────────────────────────────────────────
     app.use((_req, res) => {

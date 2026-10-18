@@ -22,6 +22,7 @@ export interface IFileService {
     createFileRecord(params: CreateFileParams): Promise<{ file: IFile; filePath: string }>;
     deleteFile(fileId: string, userId: string): Promise<IFile>;
     renameFile(fileId: string, newName: string, userId: string): Promise<IFile>;
+    getUsedStorage(userId: string): Promise<number>;
     generatePresignedUrl(params: {
         fileName: string;
         contentLength: number;
@@ -43,6 +44,10 @@ export class FileService implements IFileService {
         if (!fs.existsSync(this.storageDir)) {
             fs.mkdirSync(this.storageDir, { recursive: true });
         }
+    }
+
+    async getUsedStorage(userId: string): Promise<number> {
+        return this.fileRepository.getTotalStorageUsed(userId);
     }
 
     private getS3Client(): S3Client {
@@ -90,8 +95,15 @@ export class FileService implements IFileService {
             }
             targetParentDirId = new Types.ObjectId(parentDirId);
         } else {
-            const root = await this.directoryRepository.findUserRootDirectory(String(user._id));
-            if (!root) throw new NotFoundError('User root directory not found');
+            let root = await this.directoryRepository.findUserRootDirectory(String(user._id));
+            if (!root) {
+                root = await this.directoryRepository.createDirectory({
+                    name: `root-${user.email}`,
+                    userId: new Types.ObjectId(String(user._id)),
+                    parentDirId: null,
+                    size: 0,
+                });
+            }
             targetParentDirId = new Types.ObjectId(String(root._id));
         }
 

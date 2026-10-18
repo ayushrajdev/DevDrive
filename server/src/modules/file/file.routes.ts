@@ -13,10 +13,12 @@ export function createFileRouter(
 
     router.use(...requireAuth);
 
+    router.get('/storage/usage', fileController.getStorageUsage);
     router.post('/upload-stream/:filename', fileController.uploadStream);
     router.post('/presigned-url', fileController.generatePresignedUrl);
     router.get('/:id', fileController.getFile);
     router.patch('/:id', fileController.renameFile);
+    router.put('/:id', fileController.renameFile);
     router.delete('/:id', fileController.deleteFile);
 
     return router;

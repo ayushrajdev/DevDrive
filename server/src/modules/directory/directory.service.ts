@@ -59,11 +59,9 @@ export class DirectoryService implements IDirectoryService {
             }
             parentObjectId = new Types.ObjectId(parentDirId);
         } else {
-            // Find root directory
-            const root = await this.directoryRepository.findUserRootDirectory(userId);
-            if (root) {
-                parentObjectId = new Types.ObjectId(String(root._id));
-            }
+            // Find or create root directory
+            const root = await this.getOrCreateRootDirectory(userId, 'user');
+            parentObjectId = new Types.ObjectId(String(root._id));
         }
 
         return this.directoryRepository.createDirectory({
@@ -80,7 +78,7 @@ export class DirectoryService implements IDirectoryService {
         if (dirId) {
             targetDir = await this.directoryRepository.findDirectoryById(dirId);
         } else {
-            targetDir = await this.directoryRepository.findUserRootDirectory(userId);
+            targetDir = await this.getOrCreateRootDirectory(userId, 'user');
         }
 
         if (!targetDir) {

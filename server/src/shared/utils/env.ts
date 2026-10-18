@@ -7,7 +7,7 @@ export const ENV = Object.freeze({
     NODE_ENV: process.env.NODE_ENV ?? 'development',
     PORT: numberFromEnv(process.env.PORT, 4000),
     MONGODB_URL: process.env.MONGODB_URL ?? 'mongodb://127.0.0.1:27017/DevDrive',
-    SECRET_KEY: process.env.JWT_SECRET_KEY ?? process.env.SECRET_KEY ?? '',
+    SECRET_KEY: process.env.JWT_SECRET_KEY ?? process.env.SECRET_KEY ?? 'devdrive-secret-key-dev',
     MAX_DEVICE_LIMIT: numberFromEnv(process.env.MAX_DEVICE_LIMIT, 2),
     CORS_ORIGINS: (process.env.CORS_ORIGINS ?? 'http://localhost:3000,http://localhost:5173')
         .split(',')
@@ -44,7 +44,7 @@ export const ENV = Object.freeze({
     // OAuth – GitHub
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID ?? '',
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET ?? '',
-    GITHUB_CALLBACK_URL: process.env.GITHUB_CALLBACK_URL ?? 'http://localhost:4000/api/v2/auth/github/callback',
+    GITHUB_CALLBACK_URL: process.env.GITHUB_CALLBACK_URL ?? 'http://localhost:4000/api/auth/github/callback',
 
     // Frontend
     FRONTEND_URL: process.env.FRONTEND_URL ?? 'http://localhost:3000',
