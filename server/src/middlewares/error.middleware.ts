@@ -23,6 +23,15 @@ export class ErrorMiddleware {
             return;
         }
 
+        // Mongoose invalid ObjectId / cast error
+        if (err.name === 'CastError') {
+            res.status(400).json({
+                success: false,
+                message: `Invalid ${err.path || 'identifier'} provided`,
+            });
+            return;
+        }
+
         // Mongoose validation error
         if (err.name === 'ValidationError') {
             const messages = Object.values(err.errors || {}).map((val: any) => val.message);

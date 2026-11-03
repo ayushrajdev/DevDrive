@@ -1,3 +1,0 @@
-const SERVER_CONFIG = {
-    
-};

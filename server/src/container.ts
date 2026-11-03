@@ -1,4 +1,11 @@
-import { RedisSessionRepository } from './modules/session/session.repository.js';
+import type { ISessionRepository } from './modules/session/session.repository.js';
+import { SessionRepositoryFactory } from './factories/session-repository.factory.js';
+import { StorageFactory } from './factories/storage.factory.js';
+import { OAuthProviderFactory } from './factories/oauth-provider.factory.js';
+import { ENV } from './shared/utils/env.js';
+import type { IFileStorage, IUploadUrlSigner } from './providers/storage/file-storage.js';
+import type { OAuthProviderResolver } from './modules/auth/auth.service.js';
+import type { PaymentProviderResolver } from './modules/payment/payment.service.js';
 import { SessionService } from './modules/session/session.service.js';
 import { MongoUserRepository } from './modules/user/user.repository.js';
 import { UserService } from './modules/user/user.service.js';
@@ -24,9 +31,19 @@ import { SessionMiddleware } from './middlewares/session.middleware.js';
 import { AuthMiddleware } from './middlewares/auth.middleware.js';
 import { getTransporter } from './config/nodemailer.config.js';
 
+/** Optional overrides, mainly so tests can swap infrastructure. */
+export interface AppContainerOverrides {
+    sessionRepository?: ISessionRepository;
+    fileStorage?: IFileStorage;
+    uploadSigner?: IUploadUrlSigner | null;
+    oauthProviderResolver?: OAuthProviderResolver;
+    paymentProviderResolver?: PaymentProviderResolver;
+}
+
+/** Composition root: the only place concrete classes are wired together. */
 export class AppContainer {
     // Repositories
-    public readonly sessionRepository: RedisSessionRepository;
+    public readonly sessionRepository: ISessionRepository;
     public readonly userRepository: MongoUserRepository;
     public readonly otpRepository: MongoOtpRepository;
     public readonly directoryRepository: MongoDirectoryRepository;
@@ -59,9 +76,9 @@ export class AppContainer {
     public readonly razorpayWebhookHandler: RazorpayWebhookHandler;
     public readonly stripeWebhookHandler: StripeWebhookHandler;
 
-    constructor() {
+    constructor(overrides: AppContainerOverrides = {}) {
         // 1. Initialize Repositories
-        this.sessionRepository = new RedisSessionRepository();
+        this.sessionRepository = overrides.sessionRepository ?? SessionRepositoryFactory.create(ENV.SESSION_STORE);
         this.userRepository = new MongoUserRepository();
         this.otpRepository = new MongoOtpRepository();
         this.directoryRepository = new MongoDirectoryRepository();
@@ -74,9 +91,23 @@ export class AppContainer {
         this.userService = new UserService(this.userRepository, this.sessionService);
         this.otpService = new OtpService(this.otpRepository, getTransporter());
         this.directoryService = new DirectoryService(this.directoryRepository, this.fileRepository);
-        this.fileService = new FileService(this.fileRepository, this.directoryRepository);
-        this.authService = new AuthService(this.userRepository, this.sessionService, this.directoryService);
-        this.paymentService = new PaymentService(this.planRepository, this.subscriptionRepository);
+        this.fileService = new FileService(
+            this.fileRepository,
+            this.directoryRepository,
+            overrides.fileStorage ?? StorageFactory.createStorage(),
+            overrides.uploadSigner === undefined ? StorageFactory.createUploadSigner() : overrides.uploadSigner,
+        );
+        this.authService = new AuthService(
+            this.userRepository,
+            this.sessionService,
+            this.directoryService,
+            overrides.oauthProviderResolver ?? ((name) => OAuthProviderFactory.create(name)),
+        );
+        this.paymentService = new PaymentService(
+            this.planRepository,
+            this.subscriptionRepository,
+            overrides.paymentProviderResolver,
+        );
 
         // 3. Initialize Middlewares with injected dependencies
         this.sessionMiddleware = new SessionMiddleware(this.sessionService);

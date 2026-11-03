@@ -71,6 +71,11 @@ export class GithubOAuthProvider extends OAuthProvider {
         return profile;
     }
 
+    async authenticate(code: string): Promise<NormalizedProfile> {
+        const accessToken = await this.exchangeCodeForToken(code);
+        return this.normalize(await this.getProfile(accessToken));
+    }
+
     normalize(profile: unknown): NormalizedProfile {
         const p = profile as GithubProfile;
         return {

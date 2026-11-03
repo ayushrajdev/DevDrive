@@ -3,11 +3,10 @@ import type { ISubscriptionRepository } from '../payment/subscription.repository
 import { RazorpayProvider } from '../../providers/payment/razorpay.provider.js';
 
 export class RazorpayWebhookHandler {
-    private readonly razorpayProvider: RazorpayProvider;
-
-    constructor(private readonly subscriptionRepository: ISubscriptionRepository) {
-        this.razorpayProvider = new RazorpayProvider();
-    }
+    constructor(
+        private readonly subscriptionRepository: ISubscriptionRepository,
+        private readonly razorpayProvider: Pick<RazorpayProvider, 'verifyWebhook'> = new RazorpayProvider(),
+    ) {}
 
     handleWebhook = async (req: Request, res: Response): Promise<void> => {
         const data = req.body;
@@ -18,7 +17,14 @@ export class RazorpayWebhookHandler {
             return;
         }
 
-        const isValid = this.razorpayProvider.verifyWebhook({ data, signature });
+        let isValid = false;
+        try {
+            isValid = this.razorpayProvider.verifyWebhook({ data, signature });
+        } catch (err: any) {
+            console.error('Razorpay webhook verification unavailable:', err.message);
+            res.status(503).json({ error: 'Webhook verification is not configured' });
+            return;
+        }
         if (!isValid) {
             console.error('Razorpay webhook signature verification failed');
             res.status(400).json({ error: 'Invalid signature' });

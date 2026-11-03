@@ -3,19 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import {
-  Cloud,
-  User as UserIcon,
-  Mail,
-  Lock,
-  KeyRound,
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
-  ArrowRight,
-} from 'lucide-react';
+import { User as UserIcon, Mail, Lock, KeyRound, CheckCircle2, ArrowRight } from 'lucide-react';
 import { apiService } from '@/services/api.service';
 import { useAuth } from '@/context/AuthContext';
+import { AuthShell } from '@/components/AuthShell';
+import { Alert, Button, Input } from '@/components/ui';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -31,12 +23,10 @@ export default function RegisterPage() {
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!authLoading && user) {
-      router.replace('/');
-    }
+    if (!authLoading && user) router.replace('/');
   }, [authLoading, user, router]);
 
   const handleSendOtp = async () => {
@@ -46,11 +36,11 @@ export default function RegisterPage() {
     }
     setSendingOtp(true);
     setError(null);
-    setInfoMessage(null);
+    setInfo(null);
     try {
       const res = await apiService.sendOtp(email.trim());
       setOtpSent(true);
-      setInfoMessage(res.message || 'OTP sent to your email address');
+      setInfo(res.message || 'OTP sent to your email address');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to send OTP');
     } finally {
@@ -60,7 +50,7 @@ export default function RegisterPage() {
 
   const handleVerifyOtp = async () => {
     if (!otp.trim()) {
-      setError('Please enter the 4-digit OTP');
+      setError('Please enter the OTP sent to your email');
       return;
     }
     setVerifyingOtp(true);
@@ -68,7 +58,7 @@ export default function RegisterPage() {
     try {
       const res = await apiService.verifyOtp(email.trim(), otp.trim());
       setOtpVerified(true);
-      setInfoMessage(res.message || 'Email verified successfully!');
+      setInfo(res.message || 'Email verified successfully');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Invalid OTP');
     } finally {
@@ -79,25 +69,16 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !password) return;
-
     if (password.length < 6) {
       setError('Password must be at least 6 characters long');
       return;
     }
-
     setLoading(true);
     setError(null);
     try {
-      const res = await apiService.register({
-        name: name.trim(),
-        email: email.trim(),
-        password,
-      });
-      if (res.data) {
-        setUser(res.data);
-      } else {
-        await refreshUser();
-      }
+      const res = await apiService.register({ name: name.trim(), email: email.trim(), password });
+      if (res.data) setUser(res.data);
+      else await refreshUser();
       router.push('/');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Registration failed');
@@ -107,153 +88,86 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-2xl">
-        <div className="flex flex-col items-center text-center mb-8">
-          <div className="bg-indigo-600/20 border border-indigo-500/30 p-3 rounded-2xl text-indigo-400 mb-3">
-            <Cloud className="w-8 h-8" />
-          </div>
-          <h1 className="text-2xl font-bold text-white">Create your DevDrive Account</h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Get 500 MB of free cloud storage instantly
-          </p>
-        </div>
-
-        {error && (
-          <div className="mb-5 flex items-center gap-2.5 bg-red-950/60 border border-red-800/80 text-red-200 px-4 py-3 rounded-xl text-sm">
-            <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {infoMessage && (
-          <div className="mb-5 flex items-center gap-2.5 bg-emerald-950/60 border border-emerald-800/80 text-emerald-200 px-4 py-3 rounded-xl text-sm">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>{infoMessage}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleRegister} className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">
-              Full Name
-            </label>
-            <div className="relative">
-              <UserIcon className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Ayush Sharma"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">
-              Email Address
-            </label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="email"
-                  required
-                  disabled={otpVerified}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 disabled:opacity-60 transition-colors"
-                />
-              </div>
-              {!otpVerified && (
-                <button
-                  type="button"
-                  onClick={handleSendOtp}
-                  disabled={sendingOtp || !email.trim()}
-                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-xs font-medium text-slate-200 rounded-xl border border-slate-700 whitespace-nowrap cursor-pointer"
-                >
-                  {sendingOtp ? 'Sending...' : otpSent ? 'Resend OTP' : 'Verify Email'}
-                </button>
-              )}
-            </div>
-          </div>
-
-          {otpSent && !otpVerified && (
-            <div className="bg-slate-950/80 border border-slate-800 p-3.5 rounded-xl space-y-2">
-              <label className="block text-xs font-medium text-slate-300">
-                Enter 4-digit OTP sent to your email
-              </label>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <KeyRound className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    maxLength={6}
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    placeholder="1234"
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={handleVerifyOtp}
-                  disabled={verifyingOtp || !otp.trim()}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg cursor-pointer"
-                >
-                  {verifyingOtp ? 'Verifying...' : 'Confirm OTP'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">
-              Password
-            </label>
-            <div className="relative">
-              <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-xl text-sm transition-colors cursor-pointer"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Creating account...
-              </>
-            ) : (
-              <>
-                Create Account
-                <ArrowRight className="w-4 h-4" />
-              </>
-            )}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-slate-400">
+    <AuthShell
+      title="Create your account"
+      subtitle="Start storing and sharing files securely"
+      footer={
+        <>
           Already have an account?{' '}
-          <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-medium">
+          <Link href="/login" className="font-medium text-brand-300 hover:text-brand-200">
             Sign in
           </Link>
-        </p>
-      </div>
-    </div>
+        </>
+      }
+    >
+      {error && (
+        <Alert variant="danger" className="mb-5" onDismiss={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+      {info && !error && (
+        <Alert variant="success" className="mb-5" onDismiss={() => setInfo(null)}>
+          {info}
+        </Alert>
+      )}
+
+      <form onSubmit={handleRegister} className="space-y-4">
+        <Input label="Full name" required autoComplete="name" icon={<UserIcon />} value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" />
+        <div className="space-y-2">
+          <Input
+            label="Email address"
+            type="email"
+            required
+            autoComplete="email"
+            icon={<Mail />}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={otpVerified}
+            placeholder="you@example.com"
+          />
+          {otpVerified ? (
+            <p className="flex items-center gap-1.5 text-xs text-success-400">
+              <CheckCircle2 className="h-4 w-4" aria-hidden /> Email verified
+            </p>
+          ) : (
+            <Button type="button" variant="ghost" size="sm" onClick={handleSendOtp} loading={sendingOtp} disabled={!email.trim()}>
+              {otpSent ? 'Resend verification code' : 'Verify email (optional)'}
+            </Button>
+          )}
+        </div>
+
+        {otpSent && !otpVerified && (
+          <div className="flex items-end gap-2">
+            <Input
+              label="Verification code"
+              icon={<KeyRound />}
+              inputMode="numeric"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              placeholder="6-digit code"
+              className="flex-1"
+            />
+            <Button type="button" variant="secondary" onClick={handleVerifyOtp} loading={verifyingOtp} disabled={!otp.trim()}>
+              Verify
+            </Button>
+          </div>
+        )}
+
+        <Input
+          label="Password"
+          type="password"
+          required
+          minLength={6}
+          autoComplete="new-password"
+          icon={<Lock />}
+          hint="At least 6 characters"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <Button type="submit" variant="primary" size="lg" loading={loading} className="w-full">
+          Create account <ArrowRight className="h-4 w-4" aria-hidden />
+        </Button>
+      </form>
+    </AuthShell>
   );
 }

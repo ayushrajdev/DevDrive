@@ -4,3 +4,4 @@
 !.env.example
 npm-debug.log*
 dist
+/storage

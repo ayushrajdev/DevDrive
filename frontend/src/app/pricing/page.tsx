@@ -141,29 +141,29 @@ export default function PricingPage() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
       {/* Header */}
       <div className="text-center space-y-3 max-w-2xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-950/80 border border-indigo-800/60 text-indigo-300 text-xs font-medium">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-950/80 border border-brand-800/60 text-brand-300 text-xs font-medium">
           <Sparkles className="w-3.5 h-3.5" />
           Flexible Cloud Storage Plans
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+        <h1 className="text-3xl sm:text-4xl font-bold text-fg tracking-tight">
           Scale your DevDrive storage
         </h1>
-        <p className="text-slate-400 text-sm sm:text-base">
+        <p className="text-fg-muted text-sm sm:text-base">
           Choose between recurring subscriptions or one-time passes powered by Razorpay and Stripe.
         </p>
       </div>
 
       {/* Active Subscription Banner */}
       {currentSub && (
-        <div className="bg-emerald-950/40 border border-emerald-800/60 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-success-950/40 border border-success-950/60 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <ShieldCheck className="w-6 h-6 text-emerald-400 shrink-0" />
+            <ShieldCheck className="w-6 h-6 text-success-400 shrink-0" />
             <div>
-              <h3 className="text-sm font-semibold text-white">
+              <h3 className="text-sm font-semibold text-fg">
                 Current Subscription Status:{' '}
-                <span className="uppercase text-emerald-400">{currentSub.status}</span>
+                <span className="uppercase text-success-400">{currentSub.status}</span>
               </h3>
-              <p className="text-xs text-slate-300 mt-0.5">
+              <p className="text-xs text-fg mt-0.5">
                 Provider: <span className="capitalize">{currentSub.provider}</span> • Billing:{' '}
                 <span className="capitalize">{currentSub.billingCycle}</span> (
                 {currentSub.paymentType === 'one_time' ? 'One-Time' : 'Recurring'})
@@ -178,7 +178,7 @@ export default function PricingPage() {
               href={currentSub.shortUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-300 hover:text-emerald-200 bg-emerald-900/40 px-3.5 py-2 rounded-xl border border-emerald-700/50"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-success-300 hover:text-success-300 bg-success-950/40 px-3.5 py-2 rounded-xl border border-success-600/50"
             >
               Payment Link <ExternalLink className="w-3.5 h-3.5" />
             </a>
@@ -187,16 +187,16 @@ export default function PricingPage() {
       )}
 
       {/* Controls Bar */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-surface/90 border border-line rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Payment Mode */}
-        <div className="flex items-center gap-2 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+        <div className="flex items-center gap-2 bg-canvas p-1.5 rounded-xl border border-line">
           <button
             type="button"
             onClick={() => handlePaymentTypeChange('subscription')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               paymentType === 'subscription'
-                ? 'bg-indigo-600 text-white'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-brand-600 text-fg'
+                : 'text-fg-muted hover:text-fg'
             }`}
           >
             Recurring Subscription
@@ -206,8 +206,8 @@ export default function PricingPage() {
             onClick={() => handlePaymentTypeChange('one_time')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               paymentType === 'one_time'
-                ? 'bg-indigo-600 text-white'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-brand-600 text-fg'
+                : 'text-fg-muted hover:text-fg'
             }`}
           >
             One-Time Pass
@@ -215,7 +215,7 @@ export default function PricingPage() {
         </div>
 
         {/* Billing Cycle */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+        <div className="flex flex-wrap items-center gap-1.5 bg-canvas p-1.5 rounded-xl border border-line">
           {availableCycles.map((cycle) => (
             <button
               key={cycle}
@@ -223,8 +223,8 @@ export default function PricingPage() {
               onClick={() => setBillingCycle(cycle)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors cursor-pointer ${
                 billingCycle === cycle
-                  ? 'bg-slate-800 text-white border border-slate-700'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-surface-raised text-fg border border-line-strong'
+                  : 'text-fg-muted hover:text-fg'
               }`}
             >
               {cycle}
@@ -233,8 +233,8 @@ export default function PricingPage() {
         </div>
 
         {/* Payment Gateway Provider */}
-        <div className="flex items-center gap-2 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
-          <span className="text-xs text-slate-400 pl-2">Gateway:</span>
+        <div className="flex items-center gap-2 bg-canvas p-1.5 rounded-xl border border-line">
+          <span className="text-xs text-fg-muted pl-2">Gateway:</span>
           {(['razorpay', 'stripe'] as PaymentProviderType[]).map((gw) => (
             <button
               key={gw}
@@ -242,8 +242,8 @@ export default function PricingPage() {
               onClick={() => setProvider(gw)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors cursor-pointer ${
                 provider === gw
-                  ? 'bg-emerald-600 text-white'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-success-600 text-fg'
+                  : 'text-fg-muted hover:text-fg'
               }`}
             >
               {gw}
@@ -253,20 +253,20 @@ export default function PricingPage() {
       </div>
 
       {error && (
-        <div className="flex items-center gap-3 bg-red-950/60 border border-red-800 text-red-200 px-4 py-3 rounded-xl text-sm">
-          <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+        <div className="flex items-center gap-3 bg-danger-950/60 border border-danger-700 text-danger-300 px-4 py-3 rounded-xl text-sm">
+          <AlertCircle className="w-4 h-4 text-danger-400 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {checkoutLink && (
-        <div className="flex items-center justify-between bg-indigo-950/60 border border-indigo-700 text-indigo-200 px-4 py-3 rounded-xl text-sm">
+        <div className="flex items-center justify-between bg-brand-950/60 border border-brand-700 text-brand-200 px-4 py-3 rounded-xl text-sm">
           <span>Checkout session created! If the popup was blocked, click the link to proceed:</span>
           <a
             href={checkoutLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 font-semibold text-white underline"
+            className="inline-flex items-center gap-1.5 font-semibold text-fg underline"
           >
             Open Checkout <ExternalLink className="w-4 h-4" />
           </a>
@@ -275,8 +275,8 @@ export default function PricingPage() {
 
       {/* Plans Grid */}
       {loading ? (
-        <div className="flex items-center justify-center py-20 text-slate-400 gap-2">
-          <Loader2 className="w-5 h-5 animate-spin text-indigo-400" />
+        <div className="flex items-center justify-center py-20 text-fg-muted gap-2">
+          <Loader2 className="w-5 h-5 animate-spin text-brand-400" />
           <span>Loading storage plans...</span>
         </div>
       ) : (
@@ -290,20 +290,20 @@ export default function PricingPage() {
                 key={plan._id}
                 className={`relative flex flex-col justify-between rounded-2xl p-6 border transition-all ${
                   isPopular
-                    ? 'bg-slate-900 border-indigo-500/80 shadow-xl shadow-indigo-950/30'
-                    : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
+                    ? 'bg-surface border-brand-500/80 shadow-xl shadow-brand-950/30'
+                    : 'bg-surface/60 border-line hover:border-line-strong'
                 }`}
               >
                 {isPopular && (
-                  <span className="absolute -top-3 right-6 bg-indigo-600 text-white text-[11px] font-semibold px-3 py-0.5 rounded-full uppercase tracking-wider">
+                  <span className="absolute -top-3 right-6 bg-brand-600 text-fg text-[11px] font-semibold px-3 py-0.5 rounded-full uppercase tracking-wider">
                     Most Popular
                   </span>
                 )}
 
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold text-white capitalize">{plan.name}</h2>
-                    <div className="flex items-center gap-1.5 text-indigo-400 bg-indigo-950/60 border border-indigo-800/50 px-2.5 py-1 rounded-lg text-xs font-semibold">
+                    <h2 className="text-xl font-bold text-fg capitalize">{plan.name}</h2>
+                    <div className="flex items-center gap-1.5 text-brand-400 bg-brand-950/60 border border-brand-800/50 px-2.5 py-1 rounded-lg text-xs font-semibold">
                       <HardDrive className="w-3.5 h-3.5" />
                       {formatBytes(getQuotaBytesForPlan(plan))}
                     </div>
@@ -312,20 +312,20 @@ export default function PricingPage() {
                   <div className="mb-6">
                     {amount !== null ? (
                       <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-extrabold text-white">₹{amount}</span>
-                        <span className="text-xs text-slate-400">
+                        <span className="text-3xl font-extrabold text-fg">₹{amount}</span>
+                        <span className="text-xs text-fg-muted">
                           / {billingCycle} ({paymentType === 'one_time' ? 'one-time' : 'auto-renew'})
                         </span>
                       </div>
                     ) : (
-                      <div className="text-sm text-slate-500">Not available for this cycle</div>
+                      <div className="text-sm text-fg-muted">Not available for this cycle</div>
                     )}
                   </div>
 
-                  <ul className="space-y-2.5 border-t border-slate-800/80 pt-5 mb-8">
+                  <ul className="space-y-2.5 border-t border-line/80 pt-5 mb-8">
                     {(plan.features || []).map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-2.5 text-sm text-slate-300">
-                        <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <li key={idx} className="flex items-start gap-2.5 text-sm text-fg">
+                        <Check className="w-4 h-4 text-success-400 shrink-0 mt-0.5" />
                         <span>{feature}</span>
                       </li>
                     ))}
@@ -338,8 +338,8 @@ export default function PricingPage() {
                   onClick={() => handleSubscribe(plan)}
                   className={`w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-medium transition-colors cursor-pointer disabled:opacity-50 ${
                     isPopular
-                      ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
-                      : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
+                      ? 'bg-brand-600 hover:bg-brand-500 text-fg'
+                      : 'bg-surface-raised hover:bg-surface-hover text-fg border border-line-strong'
                   }`}
                 >
                   {processingPlan === plan._id ? (

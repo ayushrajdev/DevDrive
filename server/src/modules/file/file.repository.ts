@@ -44,7 +44,7 @@ export class MongoFileRepository implements IFileRepository {
         return File.findByIdAndUpdate(
             id,
             { $set: { name } },
-            { new: true },
+            { returnDocument: 'after' },
         ).lean() as Promise<IFile | null>;
     }
 

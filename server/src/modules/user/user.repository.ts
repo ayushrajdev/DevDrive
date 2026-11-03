@@ -44,7 +44,7 @@ export class MongoUserRepository implements IUserRepository {
                     authProvider: data.authProvider,
                 },
             },
-            { upsert: true, new: true },
+            { upsert: true, returnDocument: 'after' },
         ).lean();
         return user as IUser;
     }
@@ -70,14 +70,14 @@ export class MongoUserRepository implements IUserRepository {
     }
 
     async updateUser(id: string, data: Partial<IUser>): Promise<IUser | null> {
-        return User.findByIdAndUpdate(id, { $set: data }, { new: true }).lean() as Promise<IUser | null>;
+        return User.findByIdAndUpdate(id, { $set: data }, { returnDocument: 'after' }).lean() as Promise<IUser | null>;
     }
 
     async softDeleteUser(id: string): Promise<IUser | null> {
         return User.findByIdAndUpdate(
             id,
             { $set: { deleted: true } },
-            { new: true },
+            { returnDocument: 'after' },
         ).lean() as Promise<IUser | null>;
     }
 
@@ -89,7 +89,7 @@ export class MongoUserRepository implements IUserRepository {
         return User.findByIdAndUpdate(
             id,
             { $set: { deleted: false } },
-            { new: true },
+            { returnDocument: 'after' },
         ).lean() as Promise<IUser | null>;
     }
 
@@ -97,7 +97,7 @@ export class MongoUserRepository implements IUserRepository {
         return User.findByIdAndUpdate(
             id,
             { $set: { role } },
-            { new: true },
+            { returnDocument: 'after' },
         ).lean() as Promise<IUser | null>;
     }
 
@@ -105,7 +105,7 @@ export class MongoUserRepository implements IUserRepository {
         return User.findByIdAndUpdate(
             id,
             { $set: { password: hashedPassword } },
-            { new: true },
+            { returnDocument: 'after' },
         ).lean() as Promise<IUser | null>;
     }
 }

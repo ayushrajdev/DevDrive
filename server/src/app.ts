@@ -50,8 +50,12 @@ export function createApp(container: AppContainer = new AppContainer()): Express
     apiRouter.use('/webhooks', webhookRouter);
 
     // 2. Standard JSON body parsers
-    apiRouter.use(express.json({ limit: '10mb' }));
-    apiRouter.use(express.urlencoded({ extended: true }));
+    // Streamed uploads must reach the controller untouched, whatever Content-Type the file has.
+    const jsonParser = express.json({ limit: '10mb' });
+    const urlencodedParser = express.urlencoded({ extended: true });
+    const isStreamedUpload = (path: string) => path.startsWith('/files/upload-stream/');
+    apiRouter.use((req, res, next) => (isStreamedUpload(req.path) ? next() : jsonParser(req, res, next)));
+    apiRouter.use((req, res, next) => (isStreamedUpload(req.path) ? next() : urlencodedParser(req, res, next)));
 
     // 3. Module Routers
     apiRouter.use('/auth', createAuthRouter(container.authController));

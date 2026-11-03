@@ -1,52 +1,54 @@
 # DevDrive API
 
-DevDrive is a Node.js and Express backend for user accounts and virtual file storage. It uses MongoDB for application data and includes optional integrations for Redis, S3, OAuth, email, and payment providers.
+Express + TypeScript backend for user accounts, virtual file storage, OAuth and subscriptions.
 
-## Run locally
-
-Requirements: Node.js 20.19 or newer, npm, and MongoDB.
-
-1. Install dependencies with `npm install`.
-2. Copy `.env.example` to `.env` and set `MONGODB_URL` and `JWT_SECRET_KEY`.
-3. Start the development server with `npm run dev`, or start it with `npm start`.
-4. Check `GET /health` for the process health response.
-
-The default port is `4000`. The server waits for MongoDB before accepting requests and closes the HTTP and database connections on `SIGINT` or `SIGTERM`.
-
-## Layout
+## Architecture
 
 ```text
-config/          External service and application configuration
-controllers/     HTTP request/response handlers, grouped by API version
-errors/          Application error types and response helpers
-factories/       Provider selection
-middlewares/     Request authentication, authorization, and validation
-models/          Mongoose schemas
-providers/       External OAuth and payment provider adapters
-repositories/    Persistence adapters (MongoDB, Redis, and S3)
-routers/         Versioned Express route composition
-services/        Application use cases, grouped by version/integration
-utils/           Environment, response, validation, and shared helpers
-webhooks/        Payment provider webhook handlers
-server.js        Process lifecycle and database startup
-app.js           Express middleware and route assembly
+src/
+  server.ts            Process lifecycle (DB/Redis connect, graceful shutdown)
+  app.ts               Express assembly: security middleware, routers, error handling
+  container.ts         Composition root - the ONLY place concrete classes are wired (constructor DI)
+  config/              Infrastructure clients (MongoDB, Redis, SMTP)
+  factories/           Factory pattern: session store, OAuth provider, payment provider, file storage
+  providers/           Strategy pattern implementations
+    oauth/             OAuthProvider -> Google, GitHub
+    payment/           PaymentProvider -> Stripe, Razorpay
+    storage/           IFileStorage -> LocalDiskStorage, IUploadUrlSigner -> S3UploadUrlSigner
+  modules/<feature>/   controller (HTTP) -> service (business rules) -> repository (persistence)
+  middlewares/         Session, auth, role authorization, error handling
+  models/              Mongoose schemas
+  shared/              Errors, types, env, helpers
+test/                  Unit tests (fakes) and API integration tests (real MongoDB)
 ```
 
-Keep HTTP concerns in controllers and routers, business rules in services, and persistence/provider details behind repositories and provider adapters. Add new API versions under `routers/`, `controllers/`, and `services/` without mixing transport logic into models.
+Principles applied: every service depends on an interface (`IUserRepository`, `ISessionService`, `IFileStorage`, ...), so storage, session and payment backends can be swapped without touching business code; providers are selected by factories and injected as resolvers; controllers hold no business logic.
 
-## Active routes
+Sessions use Redis when `REDIS_URL`/`REDIS_HOST` is set (or `SESSION_STORE=redis`), otherwise an in-memory store.
 
-- `GET /health`
-- `POST /api/v2/payments/subscriptions`
-- `POST /api/v2/webhooks/subscriptions/razorpay`
-- `POST /api/v2/webhooks/subscriptions/stripe`
+## Scripts
 
-Payment creation requires a valid authenticated `req.user`; the authentication route/middleware wiring is not yet enabled in the v2 router. Configure the relevant provider credentials and provider plan IDs before using payment endpoints. Webhook routes must receive raw JSON bodies for signature verification.
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Watch mode (tsx, loads `.env`) |
+| `npm run build` / `npm start` | Compile to `dist/` and run |
+| `npm test` | Unit + integration tests |
+| `npm run typecheck` | Type check only |
 
-## Configuration
+## HTTP API (all under `/api`, JSON `{ success, message?, data? }`)
 
-See `.env.example` for supported environment variable names. Do not commit `.env` or provider credentials. MongoDB is required; Redis, SMTP, S3, OAuth, and payment configuration is only needed for the features that use those integrations. Set `CORS_ORIGINS` to a comma-separated list of trusted frontend origins.
+| Area | Endpoints |
+| --- | --- |
+| Health | `GET /health` |
+| Users | `POST /users/register`, `POST /users/login`, `POST /users/logout`, `POST /users/logout/all-devices`, `GET /users/profile`, `POST /users/set-password` |
+| Admin | `GET /users/admin/{all,active,disabled}`, `DELETE /users/admin/:id`, `DELETE /users/admin/:id/hard` (owner), `PATCH /users/admin/:id/recover`, `PATCH /users/admin/:id/role` |
+| OAuth | `POST /auth/google`, `GET /auth/github`, `GET /auth/github/callback`, `POST /auth/set-cookie` |
+| OTP | `POST /otp/send-otp`, `POST /otp/verify-otp` |
+| Directories | `GET/POST /directory`, `GET/PATCH/DELETE /directory/:id` |
+| Files | `POST /files/upload-stream/:filename`, `GET/PATCH/PUT/DELETE /files/:id`, `GET /files/storage/usage`, `POST /files/presigned-url` |
+| Payments | `GET /payments/plans`, `POST /payments/subscriptions`, `GET /payments/my-subscription` |
+| Webhooks | `POST /webhooks/subscriptions/{razorpay,stripe}` |
 
-## Notes
+## Environment
 
-The project contains legacy v1 handlers and experimental standalone scripts alongside the active v2 API. They are not mounted by the current Express application. Promote code from those areas into the versioned router and service layers only after wiring and reviewing its dependencies.
+See `.env.example`. All integrations are optional; missing credentials produce clear errors only on the endpoints that need them.

@@ -10,6 +10,9 @@ import {
     UnauthorizedError,
 } from '../../shared/errors/AppError.js';
 
+const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const MIN_PASSWORD_LENGTH = 6;
+
 export interface RegisterWithEmailParams {
     name?: string;
     email: string;
@@ -21,13 +24,6 @@ export interface LoginWithEmailParams {
     password: string;
 }
 
-export interface LoginWithOAuthParams {
-    email: string;
-    name: string;
-    picture: string;
-    authProvider: 'google' | 'github';
-}
-
 export interface AuthResult {
     user: Omit<IUser, 'password'>;
     sessionId: string;
@@ -36,7 +32,6 @@ export interface AuthResult {
 export interface IUserService {
     registerWithEmail(params: RegisterWithEmailParams): Promise<AuthResult>;
     loginWithEmail(params: LoginWithEmailParams): Promise<AuthResult>;
-    loginWithOAuth(params: LoginWithOAuthParams): Promise<AuthResult>;
     getUserById(id: string): Promise<IUser>;
     getAllUsers(): Promise<IUser[]>;
     getActiveUsers(): Promise<IUser[]>;
@@ -57,6 +52,11 @@ export class UserService implements IUserService {
     ) {}
 
     async registerWithEmail({ name, email, password }: RegisterWithEmailParams): Promise<AuthResult> {
+        if (!EMAIL_PATTERN.test(email ?? '')) throw new BadRequestError('A valid email address is required');
+        if (!password || password.length < MIN_PASSWORD_LENGTH) {
+            throw new BadRequestError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long`);
+        }
+
         const existing = await this.userRepository.findUserByEmail(email);
         if (existing) throw new ConflictError('An account with this email already exists');
 
@@ -85,16 +85,6 @@ export class UserService implements IUserService {
         const isValid = await verifyPassword(password, user.password);
         if (!isValid) throw new UnauthorizedError('Invalid email or password');
 
-        const sessionId = await this.sessionService.createSession(String(user._id));
-        const { password: _pw, ...safeUser } = user;
-        return { user: safeUser as Omit<IUser, 'password'>, sessionId };
-    }
-
-    async loginWithOAuth({ email, name, picture, authProvider }: LoginWithOAuthParams): Promise<AuthResult> {
-        const user = await this.userRepository.upsertOAuthUser({ email, name, picture, authProvider });
-        if (user.deleted) {
-            throw new ForbiddenError('Your account has been disabled. Please contact support.');
-        }
         const sessionId = await this.sessionService.createSession(String(user._id));
         const { password: _pw, ...safeUser } = user;
         return { user: safeUser as Omit<IUser, 'password'>, sessionId };
@@ -179,6 +169,11 @@ export class UserService implements IUserService {
             throw new ForbiddenError('Only an owner can modify an existing owner account');
         }
 
+        // Only an owner may change the role of an admin or owner account
+        if ((target.role === 'admin' || target.role === 'owner') && operator.role !== 'owner') {
+            throw new ForbiddenError('Only an owner can change the role of an administrator');
+        }
+
         // Manager restrictions: cannot assign admin or owner
         if (operator.role === 'manager' && (newRole === 'admin' || newRole === 'owner')) {
             throw new ForbiddenError('Managers can only assign user or manager roles');
@@ -188,8 +183,8 @@ export class UserService implements IUserService {
     }
 
     async setPassword(userId: string, newPassword: string): Promise<void> {
-        if (!newPassword || newPassword.length < 6) {
-            throw new BadRequestError('Password must be at least 6 characters long');
+        if (!newPassword || newPassword.length < MIN_PASSWORD_LENGTH) {
+            throw new BadRequestError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long`);
         }
 
         const user = await this.getUserById(userId);

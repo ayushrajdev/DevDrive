@@ -9,6 +9,10 @@ export const ENV = Object.freeze({
     MONGODB_URL: process.env.MONGODB_URL ?? 'mongodb://127.0.0.1:27017/DevDrive',
     SECRET_KEY: process.env.JWT_SECRET_KEY ?? process.env.SECRET_KEY ?? 'devdrive-secret-key-dev',
     MAX_DEVICE_LIMIT: numberFromEnv(process.env.MAX_DEVICE_LIMIT, 2),
+    SESSION_STORE: (process.env.SESSION_STORE ?? (process.env.REDIS_URL || process.env.REDIS_HOST ? 'redis' : 'memory')) as 'redis' | 'memory',
+    STORAGE_DIR: process.env.STORAGE_DIR ?? '',
+    AWS_REGION: process.env.AWS_REGION ?? 'ap-south-1',
+    S3_BUCKET: process.env.S3_BUCKET ?? '',
     CORS_ORIGINS: (process.env.CORS_ORIGINS ?? 'http://localhost:3000,http://localhost:5173')
         .split(',')
         .map((origin) => origin.trim())

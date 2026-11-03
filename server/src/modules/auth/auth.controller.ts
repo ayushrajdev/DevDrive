@@ -1,18 +1,13 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { IAuthService } from './auth.service.js';
+import { SessionCookie } from '../../shared/utils/session-cookie.js';
 import { ENV } from '../../shared/utils/env.js';
 
 export class AuthController {
     constructor(private readonly authService: IAuthService) {}
 
     private setSessionCookie(res: Response, sessionId: string): void {
-        res.cookie('sessionId', sessionId, {
-            httpOnly: true,
-            secure: ENV.NODE_ENV === 'production',
-            sameSite: ENV.NODE_ENV === 'production' ? 'none' : 'lax',
-            signed: true,
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
+        SessionCookie.set(res, sessionId);
     }
 
     loginWithGoogle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

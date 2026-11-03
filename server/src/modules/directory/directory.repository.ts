@@ -50,7 +50,7 @@ export class MongoDirectoryRepository implements IDirectoryRepository {
         return Directory.findByIdAndUpdate(
             id,
             { $set: { name } },
-            { new: true },
+            { returnDocument: 'after' },
         ).lean() as Promise<IDirectory | null>;
     }
 
@@ -58,7 +58,7 @@ export class MongoDirectoryRepository implements IDirectoryRepository {
         return Directory.findByIdAndUpdate(
             id,
             { $inc: { size: sizeDelta } },
-            { new: true },
+            { returnDocument: 'after' },
         ).lean() as Promise<IDirectory | null>;
     }
 

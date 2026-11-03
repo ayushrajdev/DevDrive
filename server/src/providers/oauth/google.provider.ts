@@ -43,6 +43,10 @@ export class GoogleOAuthProvider extends OAuthProvider {
         return this.verifyIdToken(accessToken);
     }
 
+    async authenticate(idToken: string): Promise<NormalizedProfile> {
+        return this.normalize(await this.verifyIdToken(idToken));
+    }
+
     normalize(profile: unknown): NormalizedProfile {
         const p = profile as GoogleTokenPayload;
         return {

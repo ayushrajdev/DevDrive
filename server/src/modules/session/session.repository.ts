@@ -7,9 +7,13 @@ export interface ISessionRepository {
     deleteAllUserSessions(userId: string): Promise<void>;
 }
 
+export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
+
 /**
- * Redis-backed session repository.
- * Sessions stored as JSON: session:<uuid> => { userId: string }
+ * Redis-backed session strategy.
+ * Layout (works on plain Redis, no modules required):
+ *   session:<id>        => userId            (TTL)
+ *   user-sessions:<uid> => SET of session ids
  */
 export class RedisSessionRepository implements ISessionRepository {
     private get client() {
@@ -18,57 +22,68 @@ export class RedisSessionRepository implements ISessionRepository {
 
     async createSession(userId: string): Promise<string> {
         const sessionId = crypto.randomUUID();
-        const key = `session:${sessionId}`;
-        await this.client.json.set(key, '$', { userId });
-        await this.client.expire(key, 60 * 60 * 24 * 7); // 7 days
+        await this.client
+            .multi()
+            .set(`session:${sessionId}`, userId, { EX: SESSION_TTL_SECONDS })
+            .sAdd(`user-sessions:${userId}`, sessionId)
+            .expire(`user-sessions:${userId}`, SESSION_TTL_SECONDS)
+            .exec();
         return sessionId;
     }
 
     async verifySession(sessionId: string): Promise<string | null> {
-        const result = await this.client.json.get(`session:${sessionId}`, {
-            path: '$',
-        });
-        if (!result || !Array.isArray(result) || result.length === 0) return null;
-        const session = result[0] as { userId?: string };
-        return session.userId ?? null;
+        return (await this.client.get(`session:${sessionId}`)) ?? null;
     }
 
     async deleteSession(sessionId: string): Promise<boolean> {
-        await this.client.json.del(`session:${sessionId}`);
+        const userId = await this.client.get(`session:${sessionId}`);
+        await this.client.del(`session:${sessionId}`);
+        if (userId) await this.client.sRem(`user-sessions:${userId}`, sessionId);
         return true;
     }
 
-    /**
-     * Delete all sessions belonging to a user.
-     * Uses Redis SCAN to find keys — safe at any scale.
-     */
     async deleteAllUserSessions(userId: string): Promise<void> {
-        const keys: string[] = [];
-        for await (const key of this.client.scanIterator({ MATCH: 'session:*', COUNT: 100 })) {
-            if (Array.isArray(key)) {
-                keys.push(...(key as unknown as string[]));
-            } else {
-                keys.push(String(key));
-            }
+        const setKey = `user-sessions:${userId}`;
+        const ids = await this.client.sMembers(setKey);
+        if (ids.length > 0) {
+            await this.client.del(ids.map((id) => `session:${id}`));
         }
+        await this.client.del(setKey);
+    }
+}
 
-        if (keys.length === 0) return;
+/**
+ * In-memory session strategy. Used when Redis is not configured
+ * (local development and tests). Sessions are lost on restart.
+ */
+export class InMemorySessionRepository implements ISessionRepository {
+    private readonly sessions = new Map<string, { userId: string; expiresAt: number }>();
 
-        // Filter sessions belonging to this user
-        const pipeline = this.client.multi();
-        for (const key of keys) {
-            pipeline.json.get(key, { path: '$.userId' });
+    constructor(private readonly ttlMs: number = SESSION_TTL_SECONDS * 1000) {}
+
+    async createSession(userId: string): Promise<string> {
+        const sessionId = crypto.randomUUID();
+        this.sessions.set(sessionId, { userId, expiresAt: Date.now() + this.ttlMs });
+        return sessionId;
+    }
+
+    async verifySession(sessionId: string): Promise<string | null> {
+        const session = this.sessions.get(sessionId);
+        if (!session) return null;
+        if (session.expiresAt <= Date.now()) {
+            this.sessions.delete(sessionId);
+            return null;
         }
-        const results = await pipeline.exec();
+        return session.userId;
+    }
 
-        const toDelete: string[] = [];
-        results.forEach((result, idx) => {
-            const arr = result as unknown as string[] | null;
-            if (arr?.[0] === userId) toDelete.push(keys[idx]);
-        });
+    async deleteSession(sessionId: string): Promise<boolean> {
+        return this.sessions.delete(sessionId);
+    }
 
-        if (toDelete.length > 0) {
-            await Promise.all(toDelete.map((k) => this.client.del(k)));
+    async deleteAllUserSessions(userId: string): Promise<void> {
+        for (const [id, session] of this.sessions) {
+            if (session.userId === userId) this.sessions.delete(id);
         }
     }
 }

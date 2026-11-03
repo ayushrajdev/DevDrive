@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { ISessionService } from '../modules/session/session.service.js';
-import { UnauthorizedError } from '../shared/errors/AppError.js';
+import { SessionCookie } from '../shared/utils/session-cookie.js';
 
 export class SessionMiddleware {
     constructor(private readonly sessionService: ISessionService) {}
@@ -23,7 +23,7 @@ export class SessionMiddleware {
 
             const userId = await this.sessionService.verifySession(sessionId);
             if (!userId) {
-                res.clearCookie('sessionId');
+                SessionCookie.clear(res);
                 res.status(401).json({
                     success: false,
                     message: 'Session expired or invalid. Please login again.',

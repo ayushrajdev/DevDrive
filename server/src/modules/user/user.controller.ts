@@ -1,19 +1,13 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { IUserService } from './user.service.js';
 import type { UserRole } from '../../shared/types/index.js';
-import { ENV } from '../../shared/utils/env.js';
+import { SessionCookie } from '../../shared/utils/session-cookie.js';
 
 export class UserController {
     constructor(private readonly userService: IUserService) {}
 
     private setSessionCookie(res: Response, sessionId: string): void {
-        res.cookie('sessionId', sessionId, {
-            httpOnly: true,
-            secure: ENV.NODE_ENV === 'production',
-            sameSite: ENV.NODE_ENV === 'production' ? 'none' : 'lax',
-            signed: true,
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
+        SessionCookie.set(res, sessionId);
     }
 
     registerUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -70,7 +64,7 @@ export class UserController {
             if (sessionId) {
                 await this.userService.logout(sessionId);
             }
-            res.clearCookie('sessionId');
+            SessionCookie.clear(res);
             res.status(200).json({
                 success: true,
                 message: 'Logged out successfully',
@@ -86,7 +80,7 @@ export class UserController {
             if (userId) {
                 await this.userService.logoutAllDevices(userId);
             }
-            res.clearCookie('sessionId');
+            SessionCookie.clear(res);
             res.status(200).json({
                 success: true,
                 message: 'Logged out from all active devices successfully',

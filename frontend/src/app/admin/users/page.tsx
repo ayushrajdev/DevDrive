@@ -164,22 +164,22 @@ export default function AdminUsersPage() {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/90 border border-slate-800 rounded-2xl p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface/90 border border-line rounded-2xl p-6">
                 <div>
-                    <div className="inline-flex items-center gap-2 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-1">
+                    <div className="inline-flex items-center gap-2 text-brand-400 text-xs font-semibold uppercase tracking-wider mb-1">
                         <Shield className="w-4 h-4" />
                         RBAC Administration Console
                     </div>
-                    <h1 className="text-2xl font-bold text-white">
+                    <h1 className="text-2xl font-bold text-fg">
                         User & Role Management
                     </h1>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-fg-muted mt-1">
                         Signed in as{' '}
-                        <span className="text-slate-200 font-medium">
+                        <span className="text-fg font-medium">
                             {currentUser?.email}
                         </span>{' '}
                         (
-                        <span className="uppercase text-indigo-400 font-semibold">
+                        <span className="uppercase text-brand-400 font-semibold">
                             {currentUser?.role}
                         </span>
                         )
@@ -187,14 +187,14 @@ export default function AdminUsersPage() {
                 </div>
 
                 {/* Filter Tabs */}
-                <div className="flex items-center gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+                <div className="flex items-center gap-1.5 bg-canvas p-1.5 rounded-xl border border-line">
                     <button
                         type="button"
                         onClick={() => setActiveTab('all')}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                             activeTab === 'all'
-                                ? 'bg-indigo-600 text-white'
-                                : 'text-slate-400 hover:text-white'
+                                ? 'bg-brand-600 text-fg'
+                                : 'text-fg-muted hover:text-fg'
                         }`}
                     >
                         <Users className="w-3.5 h-3.5" />
@@ -205,8 +205,8 @@ export default function AdminUsersPage() {
                         onClick={() => setActiveTab('active')}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                             activeTab === 'active'
-                                ? 'bg-emerald-600 text-white'
-                                : 'text-slate-400 hover:text-white'
+                                ? 'bg-success-600 text-fg'
+                                : 'text-fg-muted hover:text-fg'
                         }`}
                     >
                         <UserCheck className="w-3.5 h-3.5" />
@@ -218,8 +218,8 @@ export default function AdminUsersPage() {
                             onClick={() => setActiveTab('disabled')}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                                 activeTab === 'disabled'
-                                    ? 'bg-amber-600 text-white'
-                                    : 'text-slate-400 hover:text-white'
+                                    ? 'bg-warning-600 text-fg'
+                                    : 'text-fg-muted hover:text-fg'
                             }`}
                         >
                             <UserX className="w-3.5 h-3.5" />
@@ -230,35 +230,35 @@ export default function AdminUsersPage() {
             </div>
 
             {error && (
-                <div className="flex items-center gap-2.5 bg-red-950/60 border border-red-800 text-red-200 px-4 py-3 rounded-xl text-sm">
-                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                <div className="flex items-center gap-2.5 bg-danger-950/60 border border-danger-700 text-danger-300 px-4 py-3 rounded-xl text-sm">
+                    <AlertCircle className="w-4 h-4 text-danger-400 shrink-0" />
                     <span>{error}</span>
                 </div>
             )}
 
             {success && (
-                <div className="flex items-center gap-2.5 bg-emerald-950/60 border border-emerald-800 text-emerald-200 px-4 py-3 rounded-xl text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <div className="flex items-center gap-2.5 bg-success-950/60 border border-success-950 text-success-300 px-4 py-3 rounded-xl text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-success-400 shrink-0" />
                     <span>{success}</span>
                 </div>
             )}
 
             {/* Users Table */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden">
+            <div className="bg-surface/90 border border-line rounded-2xl overflow-hidden">
                 {loading ? (
-                    <div className="flex items-center justify-center py-16 text-slate-400 gap-2">
-                        <Loader2 className="w-5 h-5 animate-spin text-indigo-400" />
+                    <div className="flex items-center justify-center py-16 text-fg-muted gap-2">
+                        <Loader2 className="w-5 h-5 animate-spin text-brand-400" />
                         <span>Loading users...</span>
                     </div>
                 ) : users.length === 0 ? (
-                    <div className="text-center py-16 text-slate-500 text-sm">
+                    <div className="text-center py-16 text-fg-muted text-sm">
                         No users found for this filter.
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="border-b border-slate-800 text-[11px] font-semibold uppercase tracking-wider text-slate-400 bg-slate-950/60">
+                                <tr className="border-b border-line text-[11px] font-semibold uppercase tracking-wider text-fg-muted bg-canvas/60">
                                     <th className="py-3.5 px-4">User</th>
                                     <th className="py-3.5 px-4">Auth</th>
                                     <th className="py-3.5 px-4">Status</th>
@@ -268,7 +268,7 @@ export default function AdminUsersPage() {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-800/70 text-sm">
+                            <tbody className="divide-y divide-line/70 text-sm">
                                 {users.map((u) => {
                                     const isSelf = u._id === currentUser?._id;
                                     const isProcessing =
@@ -277,33 +277,33 @@ export default function AdminUsersPage() {
                                     return (
                                         <tr
                                             key={u._id}
-                                            className="hover:bg-slate-800/40 transition-colors"
+                                            className="hover:bg-surface-raised/40 transition-colors"
                                         >
                                             <td className="py-3.5 px-4">
-                                                <div className="font-medium text-white">
+                                                <div className="font-medium text-fg">
                                                     {u.name || 'Unnamed User'}{' '}
                                                     {isSelf && (
-                                                        <span className="ml-1.5 text-[10px] bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-800">
+                                                        <span className="ml-1.5 text-[10px] bg-brand-950 text-brand-300 px-2 py-0.5 rounded-full border border-brand-800">
                                                             You
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="text-xs text-slate-400">
+                                                <div className="text-xs text-fg-muted">
                                                     {u.email}
                                                 </div>
                                             </td>
 
-                                            <td className="py-3.5 px-4 capitalize text-xs text-slate-300">
+                                            <td className="py-3.5 px-4 capitalize text-xs text-fg">
                                                 {u.authProvider || 'email'}
                                             </td>
 
                                             <td className="py-3.5 px-4">
                                                 {u.deleted ? (
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-950/80 text-red-300 border border-red-800/60">
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-danger-950/80 text-danger-300 border border-danger-700/60">
                                                         Disabled
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-800/60">
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-950/80 text-success-300 border border-success-950/60">
                                                         Active
                                                     </span>
                                                 )}
@@ -321,7 +321,7 @@ export default function AdminUsersPage() {
                                                                     .value as UserRole,
                                                             )
                                                         }
-                                                        className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-indigo-500"
+                                                        className="bg-canvas border border-line-strong rounded-lg px-2.5 py-1 text-xs text-fg focus:outline-none focus:border-brand-500"
                                                     >
                                                         {ROLES.map((r) => (
                                                             <option
@@ -333,7 +333,7 @@ export default function AdminUsersPage() {
                                                         ))}
                                                     </select>
                                                 ) : (
-                                                    <span className="text-xs font-semibold uppercase text-indigo-300">
+                                                    <span className="text-xs font-semibold uppercase text-brand-300">
                                                         {u.role}
                                                     </span>
                                                 )}
@@ -355,7 +355,7 @@ export default function AdminUsersPage() {
                                                                                 u,
                                                                             )
                                                                         }
-                                                                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 border border-emerald-800/70 cursor-pointer"
+                                                                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-success-950/80 hover:bg-success-950 text-success-300 border border-success-950/70 cursor-pointer"
                                                                         title="Recover Soft-Deleted User"
                                                                     >
                                                                         <RotateCcw className="w-3.5 h-3.5" />
@@ -372,7 +372,7 @@ export default function AdminUsersPage() {
                                                                                 u,
                                                                             )
                                                                         }
-                                                                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-amber-950/80 hover:bg-amber-900 text-amber-200 border border-amber-800/70 cursor-pointer"
+                                                                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-warning-950/80 hover:bg-warning-950 text-warning-300 border border-warning-950/70 cursor-pointer"
                                                                         title="Soft Delete (Disable Account)"
                                                                     >
                                                                         <Ban className="w-3.5 h-3.5" />
@@ -395,7 +395,7 @@ export default function AdminUsersPage() {
                                                                         u,
                                                                     )
                                                                 }
-                                                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-red-950/80 hover:bg-red-900 text-red-200 border border-red-800/70 cursor-pointer"
+                                                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-danger-950/80 hover:bg-danger-950 text-danger-300 border border-danger-700/70 cursor-pointer"
                                                                 title="Permanently Delete User & Files"
                                                             >
                                                                 <Trash2 className="w-3.5 h-3.5" />
@@ -416,19 +416,19 @@ export default function AdminUsersPage() {
             {/* Hard Delete Confirmation Modal */}
             {userToHardDelete && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4">
-                    <div className="bg-slate-900 border border-red-800/80 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-                        <div className="flex items-center gap-3 text-red-400">
-                            <div className="p-2.5 bg-red-950 rounded-xl border border-red-800">
+                    <div className="bg-surface border border-danger-700/80 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+                        <div className="flex items-center gap-3 text-danger-400">
+                            <div className="p-2.5 bg-danger-950 rounded-xl border border-danger-700">
                                 <AlertTriangle className="w-6 h-6" />
                             </div>
-                            <h3 className="text-lg font-bold text-white">
+                            <h3 className="text-lg font-bold text-fg">
                                 Permanent Hard Deletion
                             </h3>
                         </div>
 
-                        <p className="text-sm text-slate-300 leading-relaxed">
+                        <p className="text-sm text-fg leading-relaxed">
                             Are you sure you want to permanently delete{' '}
-                            <span className="font-semibold text-white">
+                            <span className="font-semibold text-fg">
                                 {userToHardDelete.email}
                             </span>
                             ? This action cannot be undone and will permanently
@@ -440,7 +440,7 @@ export default function AdminUsersPage() {
                             <button
                                 type="button"
                                 onClick={() => setUserToHardDelete(null)}
-                                className="px-4 py-2 rounded-xl text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer"
+                                className="px-4 py-2 rounded-xl text-xs font-medium bg-surface-raised hover:bg-surface-hover text-fg cursor-pointer"
                             >
                                 Cancel
                             </button>
@@ -450,7 +450,7 @@ export default function AdminUsersPage() {
                                     actionLoadingId === userToHardDelete._id
                                 }
                                 onClick={confirmHardDelete}
-                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-red-600 hover:bg-red-500 text-white cursor-pointer disabled:opacity-50"
+                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-danger-600 hover:bg-danger-500 text-fg cursor-pointer disabled:opacity-50"
                             >
                                 <Trash2 className="w-3.5 h-3.5" />
                                 Yes, Permanently Delete

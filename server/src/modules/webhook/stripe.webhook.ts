@@ -3,14 +3,17 @@ import type { ISubscriptionRepository } from '../payment/subscription.repository
 import { StripeProvider } from '../../providers/payment/stripe.provider.js';
 
 export class StripeWebhookHandler {
-    private readonly stripeProvider: StripeProvider;
-
-    constructor(private readonly subscriptionRepository: ISubscriptionRepository) {
-        this.stripeProvider = new StripeProvider();
-    }
+    constructor(
+        private readonly subscriptionRepository: ISubscriptionRepository,
+        private readonly stripeProvider: Pick<StripeProvider, 'constructWebhookEvent'> = new StripeProvider(),
+    ) {}
 
     handleWebhook = async (req: Request, res: Response): Promise<void> => {
         const signature = req.headers['stripe-signature'] as string;
+        if (!signature) {
+            res.status(400).send('Webhook Error: missing stripe-signature header');
+            return;
+        }
         let event: any;
 
         try {

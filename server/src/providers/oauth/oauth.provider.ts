@@ -16,4 +16,10 @@ export abstract class OAuthProvider {
     abstract exchangeCodeForToken(code: string): Promise<string>;
     abstract getProfile(accessToken: string): Promise<unknown>;
     abstract normalize(profile: unknown): NormalizedProfile;
+
+    /**
+     * Template method: turn a provider credential (Google ID token or
+     * GitHub authorization code) into a normalized profile.
+     */
+    abstract authenticate(credential: string): Promise<NormalizedProfile>;
 }

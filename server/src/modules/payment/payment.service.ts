@@ -2,6 +2,7 @@ import type { IPlan, ISubscription, PaymentProvider, PaymentType, BillingCycle }
 import type { IPlanRepository } from './plan.repository.js';
 import type { ISubscriptionRepository } from './subscription.repository.js';
 import { PaymentProviderFactory } from '../../factories/payment-provider.factory.js';
+import type { PaymentProvider as PaymentProviderStrategy } from '../../providers/payment/payment.provider.js';
 import { BadRequestError, NotFoundError } from '../../shared/errors/AppError.js';
 
 export interface CreateSubscriptionParams {
@@ -11,6 +12,8 @@ export interface CreateSubscriptionParams {
     provider: PaymentProvider;
     userInfo: { _id: string; email: string; name?: string };
 }
+
+export type PaymentProviderResolver = (provider: PaymentProvider) => PaymentProviderStrategy;
 
 export interface IPaymentService {
     createSubscription(params: CreateSubscriptionParams): Promise<any>;
@@ -22,6 +25,7 @@ export class PaymentService implements IPaymentService {
     constructor(
         private readonly planRepository: IPlanRepository,
         private readonly subscriptionRepository: ISubscriptionRepository,
+        private readonly resolveProvider: PaymentProviderResolver = (name) => PaymentProviderFactory.create(name),
     ) {}
 
     async getAllPlans(): Promise<IPlan[]> {
@@ -58,7 +62,7 @@ export class PaymentService implements IPaymentService {
         }
 
         const providerPlanId = providerConfig.providerPlanId;
-        const paymentProvider = PaymentProviderFactory.create(provider);
+        const paymentProvider = this.resolveProvider(provider);
 
         const metadata = {
             planId,

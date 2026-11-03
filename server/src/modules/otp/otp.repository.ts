@@ -15,7 +15,7 @@ export class MongoOtpRepository implements IOtpRepository {
     await Otp.findOneAndUpdate(
       { email: payload.email },
       { otp: payload.otp, email: payload.email },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
   }
 

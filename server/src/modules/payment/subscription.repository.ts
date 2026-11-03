@@ -13,7 +13,7 @@ export class MongoSubscriptionRepository implements ISubscriptionRepository {
         const subscription = await Subscription.findOneAndUpdate(
             { userId: data.userId },
             { $set: data },
-            { upsert: true, new: true },
+            { upsert: true, returnDocument: 'after' },
         ).lean();
         return subscription as unknown as ISubscription;
     }
@@ -25,7 +25,7 @@ export class MongoSubscriptionRepository implements ISubscriptionRepository {
         const subscription = await Subscription.findOneAndUpdate(
             { providerSubscriptionId },
             { $set: update },
-            { new: true },
+            { returnDocument: 'after' },
         ).lean();
         return subscription as unknown as ISubscription | null;
     }

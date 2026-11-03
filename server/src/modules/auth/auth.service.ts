@@ -1,15 +1,17 @@
 import type { IUserRepository } from '../user/user.repository.js';
 import type { ISessionService } from '../session/session.service.js';
 import type { IDirectoryService } from '../directory/directory.service.js';
-import { GoogleOAuthProvider } from '../../providers/oauth/google.provider.js';
-import { GithubOAuthProvider } from '../../providers/oauth/github.provider.js';
+import type { OAuthProvider } from '../../providers/oauth/oauth.provider.js';
 import type { IUser } from '../../shared/types/index.js';
-import { ForbiddenError } from '../../shared/errors/AppError.js';
+import { BadRequestError, ForbiddenError, UnauthorizedError } from '../../shared/errors/AppError.js';
 
 export interface OAuthAuthResult {
     user: Omit<IUser, 'password'>;
     sessionId: string;
 }
+
+export type OAuthProviderName = 'google' | 'github';
+export type OAuthProviderResolver = (name: OAuthProviderName) => OAuthProvider;
 
 export interface IAuthService {
     loginWithGoogle(idToken: string): Promise<OAuthAuthResult>;
@@ -18,73 +20,57 @@ export interface IAuthService {
 }
 
 export class AuthService implements IAuthService {
-    private readonly googleProvider: GoogleOAuthProvider;
-    private readonly githubProvider: GithubOAuthProvider;
-
     constructor(
         private readonly userRepository: IUserRepository,
         private readonly sessionService: ISessionService,
         private readonly directoryService: IDirectoryService,
-    ) {
-        this.googleProvider = new GoogleOAuthProvider();
-        this.githubProvider = new GithubOAuthProvider();
-    }
+        private readonly resolveProvider: OAuthProviderResolver,
+    ) {}
 
-    async loginWithGoogle(idToken: string): Promise<OAuthAuthResult> {
-        const payload = await this.googleProvider.verifyIdToken(idToken);
-        const normalized = this.googleProvider.normalize(payload);
-
-        let user = await this.userRepository.findUserByEmail(normalized.email);
-        if (user && user.deleted) {
-            throw new ForbiddenError('Your account has been deactivated. Please contact support.');
-        }
-
-        if (!user) {
-            user = await this.userRepository.upsertOAuthUser({
-                email: normalized.email,
-                name: normalized.name,
-                picture: normalized.avatar,
-                authProvider: 'google',
-            });
-            // Ensure root directory exists for new user
-            await this.directoryService.getOrCreateRootDirectory(String(user._id), user.email);
-        } else if (!user.picture && normalized.avatar) {
-            await this.userRepository.updateUser(String(user._id), { picture: normalized.avatar });
-        }
-
-        const sessionId = await this.sessionService.createSession(String(user._id));
-        const { password: _p, ...safeUser } = user;
-        return { user: safeUser as Omit<IUser, 'password'>, sessionId };
+    loginWithGoogle(idToken: string): Promise<OAuthAuthResult> {
+        return this.loginWithProvider('google', idToken);
     }
 
     getGithubAuthUrl(): string {
-        return this.githubProvider.getAuthorizationUrl();
+        return this.resolveProvider('github').getAuthorizationUrl();
     }
 
-    async handleGithubCallback(code: string): Promise<OAuthAuthResult> {
-        const accessToken = await this.githubProvider.exchangeCodeForToken(code);
-        const profile = await this.githubProvider.getProfile(accessToken);
-        const normalized = this.githubProvider.normalize(profile);
+    handleGithubCallback(code: string): Promise<OAuthAuthResult> {
+        return this.loginWithProvider('github', code);
+    }
 
-        let user = await this.userRepository.findUserByEmail(normalized.email);
-        if (user && user.deleted) {
+    private async loginWithProvider(name: OAuthProviderName, credential: string): Promise<OAuthAuthResult> {
+        let profile;
+        try {
+            profile = await this.resolveProvider(name).authenticate(credential);
+        } catch (error) {
+            const reason = error instanceof Error ? error.message : 'unknown error';
+            throw new UnauthorizedError(`${name} authentication failed: ${reason}`);
+        }
+
+        if (!profile.email) {
+            throw new BadRequestError(`${name} account did not provide an email address`);
+        }
+
+        let user = await this.userRepository.findUserByEmail(profile.email);
+        if (user?.deleted) {
             throw new ForbiddenError('Your account has been deactivated. Please contact support.');
         }
 
         if (!user) {
             user = await this.userRepository.upsertOAuthUser({
-                email: normalized.email,
-                name: normalized.name,
-                picture: normalized.avatar,
-                authProvider: 'github',
+                email: profile.email,
+                name: profile.name,
+                picture: profile.avatar,
+                authProvider: name,
             });
             await this.directoryService.getOrCreateRootDirectory(String(user._id), user.email);
-        } else if (!user.picture && normalized.avatar) {
-            await this.userRepository.updateUser(String(user._id), { picture: normalized.avatar });
+        } else if (!user.picture && profile.avatar) {
+            await this.userRepository.updateUser(String(user._id), { picture: profile.avatar });
         }
 
         const sessionId = await this.sessionService.createSession(String(user._id));
-        const { password: _p, ...safeUser } = user;
+        const { password: _password, ...safeUser } = user;
         return { user: safeUser as Omit<IUser, 'password'>, sessionId };
     }
 }

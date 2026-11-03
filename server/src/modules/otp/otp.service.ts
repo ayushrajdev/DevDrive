@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import nodemailer from "nodemailer";
 import { IOtpRepository } from "./otp.repository.js";
 
@@ -17,7 +18,7 @@ export class OtpService implements IOtpService {
   ) {}
 
   async sendOtpToEmail(email: string): Promise<void> {
-    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+    const otp = randomInt(100000, 1000000).toString();
 
     await this.otpRepository.upsertOtp({ otp, email });
 
